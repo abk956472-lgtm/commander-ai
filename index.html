@@ -3,10 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CK-LUXE</title>
+    <title>CK-LUXE | متجر الفخامة</title>
     <!-- استدعاء مكتبة Supabase الرسمية -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        :root {
+            --bg-gradient-1: #f4f7f6;
+            --bg-gradient-2: #e2e8f0;
+            --text-color: #333;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --header-bg: #1a1a1a;
+            --accent-color: #f39c12;
+            --danger-color: #e74c3c;
+        }
+        body.dark-theme {
+            --bg-gradient-1: #121212;
+            --bg-gradient-2: #1e1e1e;
+            --text-color: #e0e0e0;
+            --card-bg: #222;
+            --header-bg: #0a0a0a;
+            --accent-color: #d4af37;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -14,12 +31,24 @@
             font-family: 'Tahoma', sans-serif;
         }
         body {
-            background: linear-gradient(135deg, #f4f7f6 0%, #e2e8f0 100%);
-            color: #333;
+            background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 100%);
+            color: var(--text-color);
             min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+        /* الشريط العلوي */
+        .top-bar {
+            background: #111;
+            color: #d4af37;
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            border-bottom: 1px solid #333;
         }
         header {
-            background-color: #1a1a1a;
+            background-color: var(--header-bg);
             color: white;
             padding: 15px 20px;
             display: flex;
@@ -31,10 +60,14 @@
             font-size: 24px;
             font-weight: bold;
             letter-spacing: 1px;
-            color: #f39c12;
+            color: var(--accent-color);
+        }
+        .nav-btns {
+            display: flex;
+            gap: 10px;
         }
         .nav-btns button {
-            background-color: #f39c12;
+            background-color: var(--accent-color);
             color: white;
             border: none;
             padding: 8px 15px;
@@ -45,7 +78,7 @@
             transition: background 0.3s;
         }
         .nav-btns button:hover {
-            background-color: #d68910;
+            opacity: 0.9;
         }
         .container {
             max-width: 1200px;
@@ -54,11 +87,11 @@
         }
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
         }
         .product-card {
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--card-bg);
             backdrop-filter: blur(5px);
             border-radius: 10px;
             overflow: hidden;
@@ -70,19 +103,25 @@
         .product-card:hover {
             transform: translateY(-5px);
         }
-        .product-img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background-color: #ddd;
-            border-radius: 8px;
+        .product-images {
+            display: flex;
+            overflow-x: auto;
+            gap: 5px;
             margin-bottom: 10px;
+            padding-bottom: 5px;
+        }
+        .product-images img {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 6px;
+            background-color: #ddd;
+            flex-shrink: 0;
         }
         .product-title {
             font-size: 18px;
             margin-bottom: 5px;
             font-weight: bold;
-            color: #2c3e50;
         }
         .product-price {
             color: #27ae60;
@@ -101,12 +140,25 @@
             font-size: 16px;
             font-weight: bold;
             transition: background 0.3s;
+            margin-top: 5px;
         }
         .buy-btn:hover {
             background-color: #1ebd56;
         }
+        .delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
         .admin-section {
-            background: white;
+            background: var(--card-bg);
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
@@ -120,7 +172,6 @@
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
-            color: #34495e;
         }
         .form-group input {
             width: 100%;
@@ -128,12 +179,11 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             outline: none;
-        }
-        .form-group input:focus {
-            border-color: #f39c12;
+            background: transparent;
+            color: inherit;
         }
         .action-btn {
-            background-color: #1a1a1a;
+            background-color: #27ae60;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -141,22 +191,22 @@
             cursor: pointer;
             font-weight: bold;
             width: 100%;
-            transition: background 0.3s;
-        }
-        .action-btn:hover {
-            background-color: #333;
-        }
-        h2 {
-            color: #1a1a1a;
         }
     </style>
 </head>
 <body>
 
+    <!-- الشريط العلوي برقم هاتفك واسمك -->
+    <div class="top-bar">
+        <span>📞 الهاتف: 0673117149</span>
+        <span>Developer & Store Creator: Abdo Store</span>
+    </div>
+
     <header>
         <div class="logo">CK-LUXE</div>
         <div class="nav-btns">
-            <button onclick="openAdminPortal()">🔐 دخول لوحة التاجر</button>
+            <button onclick="toggleTheme()" style="background-color: #555;">🌓 الخلفية</button>
+            <button onclick="openAdminPortal()">🔐 لوحة التاجر</button>
         </div>
     </header>
 
@@ -173,12 +223,12 @@
                 <label>كلمة المرور:</label>
                 <input type="password" id="password" placeholder="كلمة المرور">
             </div>
-            <button class="action-btn" onclick="checkLogin()">دخول</button>
+            <button class="action-btn" onclick="checkLogin()" style="background-color: #1a1a1a;">دخول</button>
         </div>
 
         <!-- لوحة تحكم التاجر -->
         <div id="adminPanel" class="admin-section">
-            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم CK-LUXE: أضف منتجاً جديداً مع صورة</h3>
+            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم CK-LUXE: أضف منتجاً جديداً (حتى 5 صور)</h3>
             <div class="form-group">
                 <label>اسم المنتج:</label>
                 <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
@@ -188,10 +238,10 @@
                 <input type="text" id="newPrice" placeholder="مثال: 3200 دج">
             </div>
             <div class="form-group">
-                <label>صورة المنتج:</label>
-                <input type="file" id="productImage" accept="image/*">
+                <label>صور المنتج (اختر حتى 5 صور):</label>
+                <input type="file" id="productImages" accept="image/*" multiple>
             </div>
-            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;" id="saveBtn">حفظ ونشر المنتج للسيرفر</button>
+            <button class="action-btn" onclick="addNewProduct()" id="saveBtn">حفظ ونشر المنتج للسيرفر</button>
         </div>
 
         <h2 style="margin-bottom: 20px; text-align: center;">تشكيلة المنتجات المميزة</h2>
@@ -208,20 +258,34 @@
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const clientWhatsAppNumber = "213562957309"; 
+        const clientWhatsAppNumber = "213775742738"; // رقم الواتساب المخصص لاستقبال الطلبات
         const adminUser = "admin";
         const adminPass = "1234";
 
+        // تبديل الخلفية وحفظ الاختيار
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+        }
+
+        if(localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+        }
+
+        // فحص حالة تسجيل الدخول عند تحميل الصفحة
+        window.onload = function() {
+            if(localStorage.getItem('isAdminLoggedIn') === 'true') {
+                document.getElementById('adminPanel').style.display = 'block';
+            }
+            renderProducts();
+        }
+
         async function fetchProductsFromCloud() {
             try {
-                let { data, error } = await supabaseClient.from('products').select('*');
-                if (error) {
-                    console.error("خطأ في جلب البيانات:", error);
-                    return [];
-                }
+                let { data, error } = await supabaseClient.from('products').select('*').order('id', { ascending: false });
+                if (error) return [];
                 return data || [];
             } catch (error) {
-                console.error("خطأ الاتصال:", error);
                 return [];
             }
         }
@@ -236,17 +300,22 @@
                 return;
             }
 
+            let isLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+
             products.forEach(product => {
                 let card = document.createElement('div');
                 card.className = 'product-card';
                 
-                let imgSrc = product.image_url ? product.image_url : 'https://via.placeholder.com/250?text=No+Image';
+                // دعم الصور المتعددة أو الصورة الفردية القديمة
+                let imagesList = product.extra_images || [product.image_url || 'https://via.placeholder.com/250?text=No+Image'];
+                let imagesHtml = imagesList.map(img => `<img src="${img}" alt="صورة المنتج">`).join('');
 
                 card.innerHTML = `
-                    <img src="${imgSrc}" class="product-img" alt="صورة المنتج">
+                    <div class="product-images">${imagesHtml}</div>
                     <div class="product-title">${product.title}</div>
                     <div class="product-price">${product.pricee}</div>
                     <button class="buy-btn" onclick="orderOnWhatsApp('${product.title}', '${product.pricee}')">اطلب عبر واتساب</button>
+                    ${isLoggedIn ? `<button class="delete-btn" onclick="deleteProduct(${product.id})">حذف المنتج النهائي</button>` : ''}
                 `;
                 grid.appendChild(card);
             });
@@ -255,30 +324,34 @@
         function openAdminPortal() {
             let loginBox = document.getElementById('loginBox');
             let adminPanel = document.getElementById('adminPanel');
-            if (loginBox.style.display === 'block' || adminPanel.style.display === 'block') {
-                loginBox.style.display = 'none';
-                adminPanel.style.display = 'none';
-            } else {
-                loginBox.style.display = 'block';
+            
+            if(localStorage.getItem('isAdminLoggedIn') === 'true') {
+                adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
+                return;
             }
+
+            loginBox.style.display = loginBox.style.display === 'block' ? 'none' : 'block';
         }
 
         function checkLogin() {
             let user = document.getElementById('username').value;
             let pass = document.getElementById('password').value;
             if (user === adminUser && pass === adminPass) {
+                localStorage.setItem('isAdminLoggedIn', 'true');
                 alert('تم تسجيل الدخول بنجاح!');
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
+                renderProducts();
             } else {
                 alert('خطأ في اسم المستخدم أو كلمة المرور!');
             }
         }
 
+        // إضافة منتج مع رفع حتى 5 صور
         async function addNewProduct() {
             let title = document.getElementById('newTitle').value.trim();
             let price = document.getElementById('newPrice').value.trim();
-            let imageInput = document.getElementById('productImage');
+            let imageInput = document.getElementById('productImages');
             let saveBtn = document.getElementById('saveBtn');
 
             if (title === '' || price === '') {
@@ -286,34 +359,36 @@
                 return;
             }
 
-            saveBtn.innerText = "جاري رفع الصورة وحفظ المنتج...";
+            saveBtn.innerText = "جاري رفع الصور وحفظ المنتج...";
             saveBtn.disabled = true;
 
-            let imageUrl = "";
+            let imageUrls = [];
 
             try {
                 if (imageInput.files.length > 0) {
-                    let file = imageInput.files[0];
-                    let fileExt = file.name.split('.').pop();
-                    let fileName = `${Date.now()}.${fileExt}`;
-                    let filePath = `${fileName}`;
+                    let filesToUpload = Array.from(imageInput.files).slice(0, 5); // أقصى حد 5 صور
 
-                    let { data: uploadData, error: uploadError } = await supabaseClient.storage
-                        .from('product-images')
-                        .upload(filePath, file);
+                    for (let file of filesToUpload) {
+                        let fileExt = file.name.split('.').pop();
+                        let fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
 
-                    if (uploadError) {
-                        alert('خطأ أثناء رفع الصورة: ' + uploadError.message);
-                        saveBtn.innerText = "حفظ ونشر المنتج للسيرفر";
-                        saveBtn.disabled = false;
-                        return;
+                        let { error: uploadError } = await supabaseClient.storage
+                            .from('product-images')
+                            .upload(fileName, file);
+
+                        if (uploadError) {
+                            alert('خطأ أثناء رفع إحدى الصور: ' + uploadError.message);
+                            saveBtn.innerText = "حفظ ونشر المنتج للسيرفر";
+                            saveBtn.disabled = false;
+                            return;
+                        }
+
+                        let { data: publicUrlData } = supabaseClient.storage
+                            .from('product-images')
+                            .getPublicUrl(fileName);
+
+                        imageUrls.push(publicUrlData.publicUrl);
                     }
-
-                    let { data: publicUrlData } = supabaseClient.storage
-                        .from('product-images')
-                        .getPublicUrl(filePath);
-
-                    imageUrl = publicUrlData.publicUrl;
                 }
 
                 let { error: insertError } = await supabaseClient
@@ -321,13 +396,14 @@
                     .insert([{ 
                         title: title, 
                         pricee: price, 
-                        image_url: imageUrl 
+                        image_url: imageUrls[0] || '', 
+                        extra_images: imageUrls 
                     }]);
 
                 if (insertError) {
                     alert('حدث خطأ أثناء حفظ المنتج في السيرفر: ' + insertError.message);
                 } else {
-                    alert('تمت إضافة المنتج وصورته بنجاح وأصبح ظاهراً لجميع الزبائن!');
+                    alert('تمت إضافة المنتج وصوره بنجاح وأصبح ظاهراً لجميع الزبائن!');
                     document.getElementById('newTitle').value = '';
                     document.getElementById('newPrice').value = '';
                     imageInput.value = '';
@@ -341,12 +417,27 @@
             }
         }
 
+        // حذف المنتج
+        async function deleteProduct(productId) {
+            if (confirm('هل أنت متأكد من رغبتك في حذف هذا المنتج نهائياً؟')) {
+                let { error } = await supabaseClient
+                    .from('products')
+                    .delete()
+                    .eq('id', productId);
+
+                if (error) {
+                    alert('خطأ أثناء الحذف: ' + error.message);
+                } else {
+                    alert('تم حذف المنتج بنجاح!');
+                    renderProducts();
+                }
+            }
+        }
+
         function orderOnWhatsApp(productName, productPrice) {
             let message = `مرحباً، أريـد طلب هذا المنتج من متجر CK-LUXE:\n*${productName}*\nالسعر: ${productPrice}`;
             window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
         }
-
-        window.onload = renderProducts;
     </script>
 
 </body>
