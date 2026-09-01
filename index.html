@@ -77,8 +77,12 @@
         <div id="adminPanel" class="admin-section">
             <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم CK-LUXE: أضف منتجاً جديداً</h3>
             <div class="form-group">
-                <label>اسم المنتج مع السعر:</label>
-                <input type="text" id="newTitle" placeholder="مثال: قميص رجالي - 3200 دج">
+                <label>اسم المنتج:</label>
+                <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
+            </div>
+            <div class="form-group">
+                <label>السعر:</label>
+                <input type="text" id="newPrice" placeholder="مثال: 3200 دج">
             </div>
             <div class="form-group">
                 <label>صورة المنتج:</label>
@@ -140,13 +144,15 @@
                 let card = document.createElement('div');
                 card.className = 'product-card';
                 
-                let title = product.title || product.name || 'بدون اسم';
-                let imgSrc = product.image_url || product.img || product.image || 'https://via.placeholder.com/250?text=No+Image';
+                let title = product.title || 'بدون اسم';
+                let price = product.price || 'غير محدد';
+                let imgSrc = product.image_url || 'https://via.placeholder.com/250?text=No+Image';
 
                 card.innerHTML = `
                     <img src="${imgSrc}" alt="صورة المنتج">
                     <div class="product-title">${title}</div>
-                    <button class="buy-btn" onclick="orderOnWhatsApp('${title}')">اطلب عبر واتساب</button>
+                    <div class="product-price">${price}</div>
+                    <button class="buy-btn" onclick="orderOnWhatsApp('${title}', '${price}')">اطلب عبر واتساب</button>
                     ${isLoggedIn ? `<button class="delete-btn" onclick="deleteProduct(${product.id})">حذف المنتج النهائي</button>` : ''}
                 `;
                 grid.appendChild(card);
@@ -179,10 +185,11 @@
 
         async function addNewProduct() {
             let title = document.getElementById('newTitle').value.trim();
+            let price = document.getElementById('newPrice').value.trim();
             let imageInput = document.getElementById('productImages');
             let saveBtn = document.getElementById('saveBtn');
 
-            if (title === '') {
+            if (title === '' || price === '') {
                 alert('الرجاء إدخال اسم المنتج والسعر!');
                 return;
             }
@@ -216,11 +223,11 @@
                     imageUrl = publicUrlData.publicUrl;
                 }
 
-                // نرسل الحقول الأساسية فقط الموجودة في قاعدتك لتجنب أي خطأ نهائياً
                 let { error: insertError } = await supabaseClient
                     .from('products')
                     .insert([{ 
                         title: title, 
+                        price: price, 
                         image_url: imageUrl 
                     }]);
 
@@ -229,6 +236,7 @@
                 } else {
                     alert('تمت إضافة المنتج بنجاح وأصبح ظاهراً لجميع الزبائن!');
                     document.getElementById('newTitle').value = '';
+                    document.getElementById('newPrice').value = '';
                     imageInput.value = '';
                     renderProducts();
                 }
@@ -240,6 +248,7 @@
             }
         }
 
+        async>
         async function deleteProduct(productId) {
             if (confirm('هل أنت متأكد من رغبتك في حذف هذا المنتج نهائياً؟')) {
                 let { error } = await supabaseClient.from('products').delete().eq('id', productId);
@@ -252,8 +261,8 @@
             }
         }
 
-        function orderOnWhatsApp(productName) {
-            let message = `مرحباً، أريـد طلب هذا المنتج من متجر CK-LUXE:\n*${productName}*`;
+        function orderOnWhatsApp(productName, productPrice) {
+            let message = `مرحباً، أريـد طلب هذا المنتج من متجر CK-LUXE:\n*${productName}*\nالسعر: ${productPrice}`;
             window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
         }
     </script>
