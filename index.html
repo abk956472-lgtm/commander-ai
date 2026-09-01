@@ -77,12 +77,8 @@
         <div id="adminPanel" class="admin-section">
             <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم CK-LUXE: أضف منتجاً جديداً</h3>
             <div class="form-group">
-                <label>اسم المنتج:</label>
-                <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
-            </div>
-            <div class="form-group">
-                <label>السعر:</label>
-                <input type="text" id="newPrice" placeholder="مثال: 3200 دج">
+                <label>اسم المنتج مع السعر:</label>
+                <input type="text" id="newTitle" placeholder="مثال: قميص رجالي - 3200 دج">
             </div>
             <div class="form-group">
                 <label>صورة المنتج:</label>
@@ -145,14 +141,12 @@
                 card.className = 'product-card';
                 
                 let title = product.title || product.name || 'بدون اسم';
-                let price = product.pricee || product.price || product.sier || 'غير محدد';
                 let imgSrc = product.image_url || product.img || product.image || 'https://via.placeholder.com/250?text=No+Image';
 
                 card.innerHTML = `
                     <img src="${imgSrc}" alt="صورة المنتج">
                     <div class="product-title">${title}</div>
-                    <div class="product-price">${price}</div>
-                    <button class="buy-btn" onclick="orderOnWhatsApp('${title}', '${price}')">اطلب عبر واتساب</button>
+                    <button class="buy-btn" onclick="orderOnWhatsApp('${title}')">اطلب عبر واتساب</button>
                     ${isLoggedIn ? `<button class="delete-btn" onclick="deleteProduct(${product.id})">حذف المنتج النهائي</button>` : ''}
                 `;
                 grid.appendChild(card);
@@ -185,12 +179,11 @@
 
         async function addNewProduct() {
             let title = document.getElementById('newTitle').value.trim();
-            let price = document.getElementById('newPrice').value.trim();
             let imageInput = document.getElementById('productImages');
             let saveBtn = document.getElementById('saveBtn');
 
-            if (title === '' || price === '') {
-                alert('الرجاء تعبئة اسم المنتج والسعر على الأقل!');
+            if (title === '') {
+                alert('الرجاء إدخال اسم المنتج والسعر!');
                 return;
             }
 
@@ -223,13 +216,11 @@
                     imageUrl = publicUrlData.publicUrl;
                 }
 
-                // نرسل الحقلين معاً (price و pricee) لضمان التوافق التام مع أي قاعدة بيانات
+                // نرسل الحقول الأساسية فقط الموجودة في قاعدتك لتجنب أي خطأ نهائياً
                 let { error: insertError } = await supabaseClient
                     .from('products')
                     .insert([{ 
                         title: title, 
-                        price: price, 
-                        pricee: price, 
                         image_url: imageUrl 
                     }]);
 
@@ -238,7 +229,6 @@
                 } else {
                     alert('تمت إضافة المنتج بنجاح وأصبح ظاهراً لجميع الزبائن!');
                     document.getElementById('newTitle').value = '';
-                    document.getElementById('newPrice').value = '';
                     imageInput.value = '';
                     renderProducts();
                 }
@@ -262,8 +252,8 @@
             }
         }
 
-        function orderOnWhatsApp(productName, productPrice) {
-            let message = `مرحباً، أريـد طلب هذا المنتج من متجر CK-LUXE:\n*${productName}*\nالسعر: ${productPrice}`;
+        function orderOnWhatsApp(productName) {
+            let message = `مرحباً، أريـد طلب هذا المنتج من متجر CK-LUXE:\n*${productName}*`;
             window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
         }
     </script>
