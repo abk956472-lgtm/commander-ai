@@ -3,91 +3,649 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجر CK-LUXE</title>
-    <!-- مكتبة Supabase للاتصال بالسيرفر -->
+    <title>CK-LUXE</title>
+    <!-- استدعاء مكتبة Supabase الرسمية (لتحميل صور المنتجات فقط) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: Tahoma, sans-serif; background: #f4f4f9; margin: 0; padding: 20px; text-align: right; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        button { padding: 10px 20px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-        input { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; }
-        #adminPanel { display: none; margin-top: 20px; border-top: 2px solid #ddd; padding-top: 20px; }
-        #loginBox { margin-bottom: 20px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tahoma', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f4f7f6 0%, #e2e8f0 100%);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #333;
+            min-height: 100vh;
+            transition: background 0.5s ease;
+        }
+        header {
+            background-color: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(5px);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #f39c12;
+        }
+        .nav-btns {
+            display: flex;
+            gap: 10px;
+        }
+        .nav-btns button {
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .nav-btns button:hover {
+            background-color: #d68910;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+        @media (max-width: 1024px) {
+            .products-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .product-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            text-align: center;
+            padding: 10px;
+            transition: transform 0.3s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        .product-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            background-color: #ddd;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .product-img:hover {
+            opacity: 0.9;
+        }
+        .product-title {
+            font-size: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .product-price {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .buy-btn {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 8px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s;
+            margin-bottom: 5px;
+        }
+        .buy-btn:hover {
+            background-color: #1ebd56;
+        }
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        .admin-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            background: #fff;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #f39c12;
+        }
+        .action-btn {
+            background-color: #1a1a1a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #333;
+        }
+        .logout-btn {
+            background-color: #c0392b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 10px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        .logout-btn:hover {
+            background-color: #962d22;
+        }
+        h2 {
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #orderModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            align-items: center;
+            justify-content: center;
+        }
+        .order-box {
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            text-align: right;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .order-box h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        #imageModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+        }
+        #imageModal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+        #imageModal span {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>متجر CK-LUXE</h1>
+    <header>
+        <div class="logo">CK-LUXE</div>
+        <div class="nav-btns">
+            <button onclick="openAdminPortal()" id="portalBtn">🔐 دخول لوحة التاجر</button>
+        </div>
+    </header>
 
-    <!-- زر أو صندوق الدخول -->
-    <div id="loginBox">
-        <h3>تسجيل دخول التاجر</h3>
-        <input type="email" id="username" placeholder="البريد الإلكتروني (مثال: abk956472@gmail.com)">
-        <input type="password" id="password" placeholder="كلمة المرور">
-        <button id="portalBtn" onclick="checkLogin()">دخول لوحة التاجر</button>
+    <div class="container">
+
+        <div id="loginBox" class="admin-section">
+            <h3>تسجيل دخول لوحة التحكم</h3>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>اسم المستخدم:</label>
+                <input type="text" id="username" placeholder="اسم المستخدم">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور:</label>
+                <input type="password" id="password" placeholder="كلمة المرور">
+            </div>
+            <button class="action-btn" onclick="checkLogin()">دخول</button>
+        </div>
+
+        <!-- لوحة التحكم (تظهر فقط للتاجر) -->
+        <div id="adminPanel" class="admin-section">
+            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم CK-LUXE</h3>
+            
+            <div class="form-group" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px dashed #8e44ad;">
+                <label style="color: #8e44ad;">🖼️ التحكم بخلفية الموقع (تخزين محلي):</label>
+                <button class="action-btn" onclick="document.getElementById('bgImageInput').click()" style="background-color: #8e44ad; margin-top: 5px;">اختر صورة الخلفية الجديدة</button>
+                <input type="file" id="bgImageInput" accept="image/*" style="display: none;" onchange="changeBackgroundLocally(event)">
+            </div>
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
+
+            <h4 style="color: #27ae60; margin-bottom: 15px;">أضف منتجاً جديداً مع صورة</h4>
+            <div class="form-group">
+                <label>اسم المنتج:</label>
+                <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
+            </div>
+            <div class="form-group">
+                <label>السعر:</label>
+                <input type="text" id="newPrice" placeholder="مثال: 3200 دج">
+            </div>
+            <div class="form-group">
+                <label>صورة المنتج:</label>
+                <input type="file" id="productImage" accept="image/*">
+            </div>
+            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;" id="saveBtn">حفظ ونشر المنتج</button>
+            
+            <button class="logout-btn" onclick="logoutAdmin()">تسجيل الخروج</button>
+        </div>
+
+        <h2 style="margin-bottom: 20px; text-align: center;">تشكيلة المنتجات المميزة</h2>
+        
+        <div class="products-grid" id="productsGrid">
+            <p style="text-align: center; grid-column: 1/-1; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">جاري جلب المنتجات...</p>
+        </div>
     </div>
 
-    <!-- لوحة تحكم التاجر (تكون مخفية ولا تظهر إلا بعد الدخول) -->
-    <div id="adminPanel">
-        <h2>⚙️ لوحة تحكم التاجر</h2>
-        <p>أهلاً بك، أنت الآن مسجل دخولك بصلاحيات كاملة.</p>
-        <button onclick="logoutAdmin()" style="background: #d9534f;">تسجيل خروج</button>
+    <!-- نافذة إتمام الطلب الشاملة (58 ولاية + خانة البلديّة) -->
+    <div id="orderModal">
+        <div class="order-box">
+            <h3>إتمام الطلب عبر واتساب</h3>
+            <p id="modalProductInfo" style="margin-bottom: 12px; font-weight: bold; color: #555;"></p>
+            
+            <div class="form-group">
+                <label>اختر الولاية:</label>
+                <select id="wilayaSelect" onchange="updateShippingCost()">
+                    <option value="01" data-price="900">01 - أدرار (900 دج)</option>
+                    <option value="02" data-price="700">02 - الشلف (700 دج)</option>
+                    <option value="03" data-price="800">03 - الأغواط (800 دج)</option>
+                    <option value="04" data-price="800">04 - أم البواقي (800 دج)</option>
+                    <option value="05" data-price="800">05 - باتنة (800 دج)</option>
+                    <option value="06" data-price="600">06 - بجاية (600 دج)</option>
+                    <option value="07" data-price="900">07 - بسكرة (900 دج)</option>
+                    <option value="08" data-price="900">08 - بشار (900 دج)</option>
+                    <option value="09" data-price="500">09 - البليدة (500 دج)</option>
+                    <option value="10" data-price="600" selected>10 - البويرة (600 دج)</option>
+                    <option value="11" data-price="1000">11 - تمنراست (1000 دج)</option>
+                    <option value="12" data-price="800">12 - تبسة (800 دج)</option>
+                    <option value="13" data-price="800">13 - تلمسان (800 دج)</option>
+                    <option value="14" data-price="700">14 - تيارت (700 دج)</option>
+                    <option value="15" data-price="600">15 - تيزي وزو (600 دج)</option>
+                    <option value="16" data-price="500">16 - الجزائر العاصمة (500 دج)</option>
+                    <option value="17" data-price="900">17 - الجلفة (900 دج)</option>
+                    <option value="18" data-price="700">18 - جيجل (700 دج)</option>
+                    <option value="19" data-price="700">19 - سطيف (700 دج)</option>
+                    <option value="20" data-price="800">20 - سعيدة (800 دج)</option>
+                    <option value="21" data-price="700">21 - سكيكدة (700 دج)</option>
+                    <option value="22" data-price="800">22 - سيدي بلعباس (800 دج)</option>
+                    <option value="23" data-price="700">23 - عنابة (700 دج)</option>
+                    <option value="24" data-price="700">24 - قالمة (700 دج)</option>
+                    <option value="25" data-price="700">25 - قسنطينة (700 دج)</option>
+                    <option value="26" data-price="700">26 - المدية (700 دج)</option>
+                    <option value="27" data-price="800">27 - مستغانم (800 دج)</option>
+                    <option value="28" data-price="800">28 - المسيلة (800 دج)</option>
+                    <option value="29" data-price="800">29 - معسكر (800 دج)</option>
+                    <option value="30" data-price="900">30 - ورقلة (900 دج)</option>
+                    <option value="31" data-price="800">31 - وهران (800 دج)</option>
+                    <option value="32" data-price="900">32 - البيض (900 دج)</option>
+                    <option value="33" data-price="1000">33 - إليزي (1000 دج)</option>
+                    <option value="34" data-price="700">34 - برج بوعريريج (700 دج)</option>
+                    <option value="35" data-price="400">35 - بومرداس (400 دج)</option>
+                    <option value="36" data-price="700">36 - الطارف (700 دج)</option>
+                    <option value="37" data-price="1000">37 - تندوف (1000 دج)</option>
+                    <option value="38" data-price="800">38 - تيسمسيلت (800 دج)</option>
+                    <option value="39" data-price="900">39 - الوادي (900 دج)</option>
+                    <option value="40" data-price="800">40 - خنشلة (800 دج)</option>
+                    <option value="41" data-price="700">41 - سوق أهراس (700 دج)</option>
+                    <option value="42" data-price="600">42 - تيبازة (600 دج)</option>
+                    <option value="43" data-price="700">43 - ميلة (700 دج)</option>
+                    <option value="44" data-price="700">44 - عين الدفلى (700 دج)</option>
+                    <option value="45" data-price="1000">45 - النعامة (1000 دج)</option>
+                    <option value="46" data-price="800">8 - عين تيموشنت (800 دج)</option>
+                    <option value="47" data-price="900">47 - غرداية (900 دج)</option>
+                    <option value="48" data-price="800">48 - غليزان (800 دج)</option>
+                    <option value="49" data-price="1000">49 - أولاد جلال (1000 دج)</option>
+                    <option value="50" data-price="900">50 - بني عباس (900 دج)</option>
+                    <option value="51" data-price="900">51 - إن صالح (900 دج)</option>
+                    <option value="52" data-price="1000">52 - إن قزام (1000 دج)</option>
+                    <option value="53" data-price="1000">53 - تقرت (1000 دج)</option>
+                    <option value="54" data-price="1000">54 - جانت (1000 دج)</option>
+                    <option value="55" data-price="1000">55 - المغير (1000 دج)</option>
+                    <option value="56" data-price="1000">56 - المنيعة (1000 دج)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>اكتب اسم البلدية / المدينة:</label>
+                <input type="text" id="municipalityInput" placeholder="مثال: خميس الخشنة">
+            </div>
+
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px;">
+                <p>سعر التوصيل: <span id="shippingDisplay" style="color: #e67e22; font-weight: bold;">600 دج</span></p>
+                <p style="margin-top: 5px;">الإجمالي الكلي: <span id="totalDisplay" style="color: #27ae60; font-weight: bold;">0 دج</span></p>
+            </div>
+
+            <button class="buy-btn" onclick="confirmWhatsAppOrder()" style="background-color: #25d366; padding: 10px;">إرسال الطلب عبر واتساب</button>
+            <button class="action-btn" onclick="closeOrderModal()" style="background-color: #95a5a6; margin-top: 8px; padding: 8px;">إلغاء</button>
+        </div>
     </div>
-</div>
 
-<script>
-    // إعدادات الاتصال بـ Supabase (تأكد أن هذه البيانات مطابقة لمشروعك)
-    const SUPABASE_URL = 'https://lvthnzfubrhyfnwqaxs.supabase.co';
-    const SUPABASE_ANON_KEY = 'ضع_مفتاح_anon_الخاص_بك_هنا'; // ضع مفتاحك هنا
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <div id="imageModal" onclick="closeModal()">
+        <span onclick="closeModal()">&times;</span>
+        <img id="modalImg">
+    </div>
 
-    let isUserAdmin = false;
+    <script>
+        const SUPABASE_URL = "https://lvthnzfubbrhyfnwqaxs.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_dxFosZXqkQfgc0qexLu0jw_FJ8xLY_G";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // التحقق مما إذا كان التاجر مسجل دخول مسبقاً عند فتح الصفحة
-    window.addEventListener('DOMContentLoaded', async () => {
-        let { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-            isUserAdmin = true;
-            document.getElementById('loginBox').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-        }
-    });
+        const clientWhatsAppNumber = "213775742738"; 
+        const adminUser = "admin";
+        const adminPass = "1234";
+        
+        let isUserAdmin = false;
+        let selectedProductForOrder = { title: '', price: 0 };
 
-    // دالة تسجيل الدخول الآمنة عبر Supabase
-    async function checkLogin() {
-        let email = document.getElementById('username').value.trim();
-        let pass = document.getElementById('password').value.trim();
+        window.addEventListener('DOMContentLoaded', () => {
+            let savedAdminState = localStorage.getItem('is_admin_logged');
+            if (savedAdminState === 'true') {
+                isUserAdmin = true;
+                document.getElementById('portalBtn').innerText = "⚙️ لوحة التحكم";
+            }
 
-        if (!email || !pass) {
-            alert('الرجاء إدخال البريد الإلكتروني وكلمة المرور!');
-            return;
-        }
-
-        // الاتصال بسيرفر Supabase للتحقق من الحساب
-        let { data, error } = await supabaseClient.auth.signInWithPassword({
-            email: email,
-            password: pass
+            loadSiteBackground();
+            renderProducts();
         });
 
-        if (error) {
-            alert('خطأ في البريد أو كلمة المرور: ' + error.message);
-        } else {
-            isUserAdmin = true;
-            alert('تم تسجيل الدخول بنجاح!');
-            document.getElementById('loginBox').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
+        // استرجاع وتطبيق الخلفية من التذاكر المحلية (LocalStorage)
+        function loadSiteBackground() {
+            let savedBg = localStorage.getItem('site_background');
+            if (savedBg) {
+                document.body.style.backgroundImage = `url('${savedBg}')`;
+            }
         }
-    }
 
-    // دالة تسجيل الخروج
-    async function logoutAdmin() {
-        await supabaseClient.auth.signOut();
-        isUserAdmin = false;
-        alert('تم تسجيل الخروج بنجاح.');
-        location.reload();
-    }
-</script>
+        // تغيير الخلفية وتخزينها محلياً فوراً
+        function changeBackgroundLocally(event) {
+            let file = event.target.files[0];
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let base64Image = e.target.result;
+                    localStorage.setItem('site_background', base64Image);
+                    document.body.style.backgroundImage = `url('${base64Image}')`;
+                    alert('تم تغيير وتخزين الخلفية محلياً بنجاح!');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // جلب المنتجات من التخزين المحلي
+        function getLocalProducts() {
+            let products = localStorage.getItem('site_products');
+            return products ? JSON.parse(products) : [];
+        }
+
+        function renderProducts() {
+            let grid = document.getElementById('productsGrid');
+            let products = getLocalProducts();
+            grid.innerHTML = '';
+
+            if (products.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">لا توجد منتجات حالياً.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                let card = document.createElement('div');
+                card.className = 'product-card';
+                
+                let imgSrc = product.image_url ? product.image_url : 'https://via.placeholder.com/250?text=No+Image';
+                let productTitle = product.title || '';
+                let productPrice = product.pricee || '';
+
+                let deleteButtonHtml = isUserAdmin ? `<button class="delete-btn" onclick="deleteProduct('${productTitle.replace(/'/g, "\\'")}')">حذف المنتج</button>` : '';
+
+                card.innerHTML = `
+                    <img src="${imgSrc}" class="product-img" alt="صورة المنتج" onclick="openModal('${imgSrc}')">
+                    <div class="product-title">${productTitle}</div>
+                    <div class="product-price">${productPrice}</div>
+                    <button class="buy-btn" onclick="openOrderModal('${productTitle.replace(/'/g, "\\'")}', '${productPrice}')">اطلب عبر واتساب</button>
+                    ${deleteButtonHtml}
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function deleteProduct(productTitle) {
+            if (confirm(`هل أنت متأكد من رغبتك في حذف المنتج: ${productTitle}؟`)) {
+                let products = getLocalProducts();
+                products = products.filter(p => p.title !== productTitle);
+                localStorage.setItem('site_products', JSON.stringify(products));
+                alert('تم حذف المنتج بنجاح!');
+                renderProducts();
+            }
+        }
+
+        function openModal(imgSrc) {
+            let modal = document.getElementById('imageModal');
+            let modalImg = document.getElementById('modalImg');
+            modal.style.display = 'flex';
+            modalImg.src = imgSrc;
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        function openOrderModal(productTitle, productPrice) {
+            selectedProductForOrder.title = productTitle;
+            let cleanPrice = parseInt(productPrice.replace(/[^0-9]/g, '')) || 0;
+            selectedProductForOrder.price = cleanPrice;
+
+            document.getElementById('modalProductInfo').innerText = `المنتج: ${productTitle} (${productPrice})`;
+            document.getElementById('municipalityInput').value = '';
+            document.getElementById('orderModal').style.display = 'flex';
+            updateShippingCost();
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+
+        function updateShippingCost() {
+            let select = document.getElementById('wilayaSelect');
+            let selectedOption = select.options[select.selectedIndex];
+            let shippingCost = parseInt(selectedOption.getAttribute('data-price')) || 0;
+            
+            document.getElementById('shippingDisplay').innerText = shippingCost + " دج";
+            
+            let total = selectedProductForOrder.price + shippingCost;
+            document.getElementById('totalDisplay').innerText = total + " دج";
+        }
+
+        function confirmWhatsAppOrder() {
+            let select = document.getElementById('wilayaSelect');
+            let wilayaText = select.options[select.selectedIndex].text;
+            let shippingCost = select.options[select.selectedIndex].getAttribute('data-price');
+            let municipality = document.getElementById('municipalityInput').value.trim();
+            let total = selectedProductForOrder.price + parseInt(shippingCost);
+
+            let message = `مرحباً، أريـد طلب هذا المنتج من متجر CK-LUXE:\n\n` +
+                          `📦 *المنتج:* ${selectedProductForOrder.title}\n` +
+                          `💵 *سعر المنتج:* ${selectedProductForOrder.price} دج\n` +
+                          `📍 *الولاية:* ${wilayaText}\n` +
+                          `🏠 *البلدية / المدينة:* ${municipality ? municipality : 'لم يتم تحديدها'}\n` +
+                          `🚚 *سعر التوصيل:* ${shippingCost} دج\n` +
+                          `💰 *المجموع الكلي:* ${total} دج`;
+
+            window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
+            closeOrderModal();
+        }
+
+        function openAdminPortal() {
+            let loginBox = document.getElementById('loginBox');
+            let adminPanel = document.getElementById('adminPanel');
+            if (isUserAdmin) {
+                adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
+                loginBox.style.display = 'none';
+            } else {
+                loginBox.style.display = loginBox.style.display === 'block' ? 'none' : 'block';
+                adminPanel.style.display = 'none';
+            }
+        }
+
+        function checkLogin() {
+            let user = document.getElementById('username').value;
+            let pass = document.getElementById('password').value;
+            if (user === adminUser && pass === adminPass) {
+                isUserAdmin = true;
+                localStorage.setItem('is_admin_logged', 'true');
+                
+                alert('تم تسجيل الدخول بنجاح!');
+                document.getElementById('portalBtn').innerText = "⚙️ لوحة التحكم";
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                renderProducts();
+            } else {
+                alert('خطأ في اسم المستخدم أو كلمة المرور!');
+            }
+        }
+
+        function logoutAdmin() {
+            isUserAdmin = false;
+            localStorage.removeItem('is_admin_logged');
+            alert('تم تسجيل الخروج بنجاح.');
+            location.reload();
+        }
+
+        // حفظ المنتجات محلياً (مع دعم صور المنتجات وتحويلها لتخزين محلي مباشر)
+        async function addNewProduct() {
+            let title = document.getElementById('newTitle').value.trim();
+            let price = document.getElementById('newPrice').value.trim();
+            let imageInput = document.getElementById('productImage');
+            let saveBtn = document.getElementById('saveBtn');
+
+            if (title === '' || price === '') {
+                alert('الرجاء تعبئة اسم المنتج والسعر على الأقل!');
+                return;
+            }
+
+            saveBtn.innerText = "جاري الحفظ محلياً...";
+            saveBtn.disabled = true;
+
+            let imageUrl = "";
+
+            if (imageInput.files.length > 0) {
+                let file = imageInput.files[0];
+                imageUrl = await new Promise((resolve) => {
+                    let reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            let products = getLocalProducts();
+            products.push({
+                title: title,
+                pricee: price,
+                image_url: imageUrl
+            });
+
+            localStorage.setItem('site_products', JSON.stringify(products));
+
+            alert('تمت إضافة المنتج بنجاح وتخزينه محلياً!');
+            document.getElementById('newTitle').value = '';
+            document.getElementById('newPrice').value = '';
+            imageInput.value = '';
+            
+            saveBtn.innerText = "حفظ ونشر المنتج";
+            saveBtn.disabled = false;
+            renderProducts();
+        }
+    </script>
 
 </body>
 </html>
