@@ -209,7 +209,7 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        /* نافذة إتمام الطلب واختيار الولاية */
+        /* نافذة إتمام الطلب واختيار الولاية والبلدية */
         #orderModal {
             display: none;
             position: fixed;
@@ -227,9 +227,11 @@
             padding: 25px;
             border-radius: 10px;
             width: 90%;
-            max-width: 400px;
+            max-width: 420px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             text-align: right;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .order-box h3 {
             margin-bottom: 15px;
@@ -317,7 +319,6 @@
             </div>
             <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;" id="saveBtn">حفظ ونشر المنتج للسيرفر</button>
             
-            <!-- زر تسجيل الخروج للتاجر -->
             <button class="logout-btn" onclick="logoutAdmin()">تسجيل الخروج</button>
         </div>
 
@@ -328,26 +329,81 @@
         </div>
     </div>
 
-    <!-- نافذة إتمام الطلب واختيار الولاية -->
+    <!-- نافذة إتمام الطلب الشاملة (58 ولاية + خانة البلديّة) -->
     <div id="orderModal">
         <div class="order-box">
             <h3>إتمام الطلب عبر واتساب</h3>
-            <p id="modalProductInfo" style="margin-bottom: 15px; font-weight: bold; color: #555;"></p>
+            <p id="modalProductInfo" style="margin-bottom: 12px; font-weight: bold; color: #555;"></p>
             
             <div class="form-group">
-                <label>اختر ولايتك:</label>
+                <label>اختر الولاية:</label>
                 <select id="wilayaSelect" onchange="updateShippingCost()">
-                    <option value="35" data-price="400">35- بومرداس (400 دج)</option>
-                    <option value="16" data-price="500">16- الجزائر العاصمة (500 دج)</option>
-                    <option value="15" data-price="600">15- تيزي وزو (600 دج)</option>
-                    <option value="10" data-price="600">10- البويرة (600 دج)</option>
-                    <option value="other_home" data-price="800">باقي الولايـات - توصيل للمنزل (800 دج)</option>
-                    <option value="other_desk" data-price="500">باقي الولايـات - توصيل للمكتب (500 دج)</option>
+                    <option value="01" data-price="900">01 - أدرار (900 دج)</option>
+                    <option value="02" data-price="700">02 - الشلف (700 دج)</option>
+                    <option value="03" data-price="800">03 - الأغواط (800 دج)</option>
+                    <option value="04" data-price="800">04 - أم البواقي (800 دج)</option>
+                    <option value="05" data-price="800">05 - باتنة (800 دج)</option>
+                    <option value="06" data-price="600">06 - بجاية (600 دج)</option>
+                    <option value="07" data-price="900">07 - بسكرة (900 دج)</option>
+                    <option value="08" data-price="900">08 - بشار (900 دج)</option>
+                    <option value="09" data-price="500">09 - البليدة (500 دج)</option>
+                    <option value="10" data-price="600" selected>10 - البويرة (600 دج)</option>
+                    <option value="11" data-price="1000">11 - تمنراست (1000 دج)</option>
+                    <option value="12" data-price="800">12 - تبسة (800 دج)</option>
+                    <option value="13" data-price="800">13 - تلمسان (800 دج)</option>
+                    <option value="14" data-price="700">14 - تيارت (700 دج)</option>
+                    <option value="15" data-price="600">15 - تيزي وزو (600 دج)</option>
+                    <option value="16" data-price="500">16 - الجزائر العاصمة (500 دج)</option>
+                    <option value="17" data-price="900">17 - الجلفة (900 دج)</option>
+                    <option value="18" data-price="700">18 - جيجل (700 دج)</option>
+                    <option value="19" data-price="700">19 - سطيف (700 دج)</option>
+                    <option value="20" data-price="800">20 - سعيدة (800 دج)</option>
+                    <option value="21" data-price="700">21 - سكيكدة (700 دج)</option>
+                    <option value="22" data-price="800">22 - سيدي بلعباس (800 دج)</option>
+                    <option value="23" data-price="700">23 - عنابة (700 دج)</option>
+                    <option value="24" data-price="700">24 - قالمة (700 دج)</option>
+                    <option value="25" data-price="700">25 - قسنطينة (700 دج)</option>
+                    <option value="26" data-price="700">26 - المدية (700 دج)</option>
+                    <option value="27" data-price="800">27 - مستغانم (800 دج)</option>
+                    <option value="28" data-price="800">28 - المسيلة (800 دج)</option>
+                    <option value="29" data-price="800">29 - معسكر (800 دج)</option>
+                    <option value="30" data-price="900">30 - ورقلة (900 دج)</option>
+                    <option value="31" data-price="800">31 - وهران (800 دج)</option>
+                    <option value="32" data-price="900">32 - البيض (900 دج)</option>
+                    <option value="33" data-price="1000">33 - إليزي (1000 دج)</option>
+                    <option value="34" data-price="700">34 - برج بوعريريج (700 دج)</option>
+                    <option value="35" data-price="400">35 - بومرداس (400 دج)</option>
+                    <option value="36" data-price="700">36 - الطارف (700 دج)</option>
+                    <option value="37" data-price="1000">37 - تندوف (1000 دج)</option>
+                    <option value="38" data-price="800">38 - تيسمسيلت (800 دج)</option>
+                    <option value="39" data-price="900">39 - الوادي (900 دج)</option>
+                    <option value="40" data-price="800">40 - خنشلة (800 دج)</option>
+                    <option value="41" data-price="700">41 - سوق أهراس (700 دج)</option>
+                    <option value="42" data-price="600">42 - تيبازة (600 دج)</option>
+                    <option value="43" data-price="700">43 - ميلة (700 دج)</option>
+                    <option value="44" data-price="700">44 - عين الدفلى (700 دج)</option>
+                    <option value="45" data-price="1000">45 - النعامة (1000 دج)</option>
+                    <option value="46" data-price="800">46 - عين تيموشنت (800 دج)</option>
+                    <option value="47" data-price="900">47 - غرداية (900 دج)</option>
+                    <option value="48" data-price="800">48 - غليزان (800 دج)</option>
+                    <option value="49" data-price="1000">49 - أولاد جلال (1000 دج)</option>
+                    <option value="50" data-price="900">50 - بني عباس (900 دج)</option>
+                    <option value="51" data-price="900">51 - إن صالح (900 دج)</option>
+                    <option value="52" data-price="1000">52 - إن قزام (1000 دج)</option>
+                    <option value="53" data-price="1000">53 - تقرت (1000 دج)</option>
+                    <option value="54" data-price="1000">54 - جانت (1000 دج)</option>
+                    <option value="55" data-price="1000">55 - المغير (1000 دج)</option>
+                    <option value="56" data-price="1000">56 - المنيعة (1000 دج)</option>
                 </select>
             </div>
 
+            <div class="form-group">
+                <label>اكتب اسم البلدية / المدينة:</label>
+                <input type="text" id="municipalityInput" placeholder="مثال: خميس الخشنة">
+            </div>
+
             <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px;">
-                <p>سعر التوصيل: <span id="shippingDisplay" style="color: #e67e22; font-weight: bold;">400 دج</span></p>
+                <p>سعر التوصيل: <span id="shippingDisplay" style="color: #e67e22; font-weight: bold;">600 دج</span></p>
                 <p style="margin-top: 5px;">الإجمالي الكلي: <span id="totalDisplay" style="color: #27ae60; font-weight: bold;">0 دج</span></p>
             </div>
 
@@ -494,15 +550,13 @@
             document.getElementById('imageModal').style.display = 'none';
         }
 
-        // فتح نافذة اختيار الولاية عند الضغط على زر الشراء
         function openOrderModal(productTitle, productPrice) {
             selectedProductForOrder.title = productTitle;
-            
-            // استخراج الأرقام فقط من السعر لحساب الإجمالي بدقة
             let cleanPrice = parseInt(productPrice.replace(/[^0-9]/g, '')) || 0;
             selectedProductForOrder.price = cleanPrice;
 
             document.getElementById('modalProductInfo').innerText = `المنتج: ${productTitle} (${productPrice})`;
+            document.getElementById('municipalityInput').value = '';
             document.getElementById('orderModal').style.display = 'flex';
             updateShippingCost();
         }
@@ -511,7 +565,6 @@
             document.getElementById('orderModal').style.display = 'none';
         }
 
-        // تحديث سعر التوصيل والإجمالي بناءً على الاختيار
         function updateShippingCost() {
             let select = document.getElementById('wilayaSelect');
             let selectedOption = select.options[select.selectedIndex];
@@ -523,17 +576,18 @@
             document.getElementById('totalDisplay').innerText = total + " دج";
         }
 
-        // إرسال الطلب النهائي عبر الواتساب مع التفاصيل
         function confirmWhatsAppOrder() {
             let select = document.getElementById('wilayaSelect');
             let wilayaText = select.options[select.selectedIndex].text;
             let shippingCost = select.options[select.selectedIndex].getAttribute('data-price');
+            let municipality = document.getElementById('municipalityInput').value.trim();
             let total = selectedProductForOrder.price + parseInt(shippingCost);
 
             let message = `مرحباً، أريـد طلب هذا المنتج من متجر CK-LUXE:\n\n` +
                           `📦 *المنتج:* ${selectedProductForOrder.title}\n` +
                           `💵 *سعر المنتج:* ${selectedProductForOrder.price} دج\n` +
-                          `📍 *الولاية / التوصيل:* ${wilayaText}\n` +
+                          `📍 *الولاية:* ${wilayaText}\n` +
+                          `🏠 *البلدية / المدينة:* ${municipality ? municipality : 'لم يتم تحديدها'}\n` +
                           `🚚 *سعر التوصيل:* ${shippingCost} دج\n` +
                           `💰 *المجموع الكلي:* ${total} دج`;
 
@@ -630,8 +684,8 @@
                     alert('حدث خطأ أثناء حفظ المنتج في السيرفر: ' + insertError.message);
                 } else {
                     alert('تمت إضافة المنتج وصورته بنجاح وأصبح ظاهراً لجميع الزبائن!');
-                    document.getElementById('newTitle').value.trim = '';
-                    document.getElementById('newPrice').value.trim = '';
+                    document.getElementById('newTitle').value = '';
+                    document.getElementById('newPrice').value = '';
                     imageInput.value = '';
                     renderProducts(); 
                 }
