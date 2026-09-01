@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجري الإلكتروني للملابس</title>
+    <title>متجر العميل العصري</title>
     <style>
         * {
             margin: 0;
@@ -90,8 +90,6 @@
         .buy-btn:hover {
             background-color: #1ebd56;
         }
-        
-        /* نافذة تسجيل الدخول ولوحة التحكم */
         .admin-section {
             background: white;
             padding: 20px;
@@ -128,78 +126,102 @@
 <body>
 
     <header>
-        <div class="logo">متجر الملابس العصري</div>
+        <div class="logo">متجر العميل العصري</div>
         <div class="nav-btns">
-            <button onclick="openAdminPortal()">🔐 دخول التاجر</button>
+            <button onclick="openAdminPortal()">🔐 دخول لوحة التاجر</button>
         </div>
     </header>
 
     <div class="container">
 
-        <!-- 1. نموذج تسجيل الدخول للتاجر -->
+        <!-- نموذج تسجيل الدخول للتاجر -->
         <div id="loginBox" class="admin-section">
             <h3>تسجيل دخول لوحة التحكم</h3>
-            <p style="margin-bottom: 15px; color: #666; font-size: 14px;">الرجاء إدخال بيانات التاجر للوصول إلى إدارة المتجر.</p>
             <div class="form-group">
                 <label>اسم المستخدم:</label>
-                <input type="text" id="username" placeholder="أدخل اسم المستخدم">
+                <input type="text" id="username" placeholder="اسم المستخدم">
             </div>
             <div class="form-group">
                 <label>كلمة المرور:</label>
-                <input type="password" id="password" placeholder="أدخل كلمة المرور">
+                <input type="password" id="password" placeholder="كلمة المرور">
             </div>
             <button class="action-btn" onclick="checkLogin()">دخول</button>
         </div>
 
-        <!-- 2. لوحة تحكم التاجر الفعلية (مخفية حتى يتم تسجيل الدخول بنجاح) -->
+        <!-- لوحة تحكم التاجر -->
         <div id="adminPanel" class="admin-section">
-            <h3 style="color: #27ae60; margin-bottom: 15px;">مرحباً بك أيها التاجر! (تم تسجيل الدخول بنجاح)</h3>
+            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم التاجر: أضف منتجاً جديداً (سحابياً)</h3>
             <div class="form-group">
-                <label>اسم المنتج الجديد:</label>
-                <input type="text" id="newTitle" placeholder="مثال: جاكيت رجالي فخم">
+                <label>اسم المنتج:</label>
+                <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
             </div>
             <div class="form-group">
-                <label>السعر (بالدينار):</label>
-                <input type="text" id="newPrice" placeholder="مثال: 4500 دج">
+                <label>السعر:</label>
+                <input type="text" id="newPrice" placeholder="مثال: 3200 دج">
             </div>
-            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;">إضافة المنتج للمتجر</button>
+            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;">حفظ ونشر المنتج للجميع</button>
         </div>
 
-        <h2 style="margin-bottom: 20px; text-align: center;">أحدث تشكيلة ملابس</h2>
+        <h2 style="margin-bottom: 20px; text-align: center;">قائمة المنتجات المتوفرة</h2>
         
         <!-- شبكة المنتجات -->
         <div class="products-grid" id="productsGrid">
-            
-            <!-- منتج 1 -->
-            <div class="product-card">
-                <div class="product-img">صورة المنتج 1</div>
-                <div class="product-title">هودي عصري أنيق</div>
-                <div class="product-price">3500 دج</div>
-                <button class="buy-btn" onclick="orderOnWhatsApp('هودي عصري أنيق', '3500 دج')">اطلب عبر واتساب</button>
-            </div>
-
-            <!-- منتج 2 -->
-            <div class="product-card">
-                <div class="product-img">صورة المنتج 2</div>
-                <div class="product-title">سروال جينز كلاسيك</div>
-                <div class="product-price">2800 دج</div>
-                <button class="buy-btn" onclick="orderOnWhatsApp('سروال جينز كلاسيك', '2800 دج')">اطلب عبر واتساب</button>
-            </div>
-
+            <p style="text-align: center; grid-column: 1/-1;">جاري تحميل المنتجات السحابية...</p>
         </div>
     </div>
 
     <script>
-        // بيانات التاجر الافتراضية (يمكنك تغييرها كما تريد)
-        const adminUser = "abdo";
+        const clientWhatsAppNumber = "213562957309"; 
+        const adminUser = "admin";
         const adminPass = "1234";
 
-        // إظهار نافذة تسجيل الدخول عند الضغط على زر دخول التاجر
+        // معلومات السحابة المحدثة والصحيحة
+        const BIN_ID = "6a96e7b1da38895dfe2b7f17"; 
+        const API_KEY = "$2a$10$J75l.VfvTJT.df3ntnHrj.xq8.NseTPAKkgDYV5/5wkCWJ9haC2d0"; 
+
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        // جلب المنتجات
+        async function fetchProductsFromCloud() {
+            try {
+                let response = await fetch(`${API_URL}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                let data = await response.json();
+                return data.record.products || [];
+            } catch (error) {
+                console.error("خطأ في جلب البيانات:", error);
+                return [];
+            }
+        }
+
+        // عرض المنتجات
+        async function renderProducts() {
+            let grid = document.getElementById('productsGrid');
+            let products = await fetchProductsFromCloud();
+            grid.innerHTML = '';
+
+            if (products.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">لا توجد منتجات حالياً.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                let card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-img">صورة المنتج</div>
+                    <div class="product-title">${product.title}</div>
+                    <div class="product-price">${product.price}</div>
+                    <button class="buy-btn" onclick="orderOnWhatsApp('${product.title}', '${product.price}')">اطلب عبر واتساب</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
         function openAdminPortal() {
             let loginBox = document.getElementById('loginBox');
             let adminPanel = document.getElementById('adminPanel');
-            
-            // إذا كانت اللوحة مفتوحة مسبقاً، نقوم بإغلاقها
             if (loginBox.style.display === 'block' || adminPanel.style.display === 'block') {
                 loginBox.style.display = 'none';
                 adminPanel.style.display = 'none';
@@ -208,56 +230,1822 @@
             }
         }
 
-        // التحقق من اسم المستخدم وكلمة المرور
         function checkLogin() {
             let user = document.getElementById('username').value;
             let pass = document.getElementById('password').value;
-
             if (user === adminUser && pass === adminPass) {
                 alert('تم تسجيل الدخول بنجاح!');
                 document.getElementById('loginBox').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block'; // إظهار لوحة إضافة المنتجات
+                document.getElementById('adminPanel').style.display = 'block';
             } else {
                 alert('خطأ في اسم المستخدم أو كلمة المرور!');
             }
         }
 
-        // دالة إضافة منتج جديد
-        function addNewProduct() {
-            let title = document.getElementById('newTitle').value;
-            let price = document.getElementById('newPrice').value;
+        // إضافة منتج جديد وتحديث السحابة (PUT)
+        async function addNewProduct() {
+            let title = document.getElementById('newTitle').value.trim();
+            let price = document.getElementById('newPrice').value.trim();
 
             if (title === '' || price === '') {
-                alert('الرجاء إدخال اسم المنتج والسعر!');
+                alert('الرجاء تعبئة جميع الحقول!');
                 return;
             }
 
-            let grid = document.getElementById('productsGrid');
+            try {
+                // 1. جلب المنتجات الحالية أولاً
+                let currentProducts = await fetchProductsFromCloud();
 
-            let newCard = document.createElement('div');
-            newCard.className = 'product-card';
-            newCard.innerHTML = `
-                <div class="product-img">منتج جديد</div>
-                <div class="product-title">${title}</div>
-                <div class="product-price">${price}</div>
-                <button class="buy-btn" onclick="orderOnWhatsApp('${title}', '${price}')">اطلب عبر واتساب</button>
-            `;
+                // 2. إضافة المنتج الجديد للقائمة
+                currentProducts.push({ title: title, price: price });
 
-            grid.prepend(newCard);
+                // 3. إرسال القائمة المحدثة للسحابة عبر PUT
+                let response = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({ products: currentProducts })
+                });
 
-            document.getElementById('newTitle').value = '';
-            document.getElementById('newPrice').value = '';
-            
-            alert('تمت إضافة المنتج بنجاح للمتجر!');
+                if (response.ok) {
+                    alert('تمت إضافة المنتج بنجاح وأصبح ظاهراً لجميع الزبائن!');
+                    document.getElementById('newTitle').value = '';
+                    document.getElementById('newPrice').value = '';
+                    renderProducts(); // إعادة تحميل العرض
+                } else {
+                    alert('حدث خطأ أثناء الحفظ بالسحابة.');
+                }
+            } catch (e) {
+                alert('فشل الاتصال بالإنترنت.');
+            }
         }
 
-        // توجيه الطلب إلى رقم واتساب الخاص بك
         function orderOnWhatsApp(productName, productPrice) {
-            let phoneNumber = "213562957309"; 
             let message = `مرحباً، أريـد طلب هذا المنتج:\n*${productName}*\nالسعر: ${productPrice}`;
-            let encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
+            window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
         }
+
+        window.onload = renderProducts;
+    </script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر العميل العصري</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tahoma', sans-serif;
+        }
+        body {
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .nav-btns button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            padding: 15px;
+        }
+        .product-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+        }
+        .product-title {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .product-price {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .buy-btn {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .buy-btn:hover {
+            background-color: #1ebd56;
+        }
+        .admin-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .action-btn {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">متجر العميل العصري</div>
+        <div class="nav-btns">
+            <button onclick="openAdminPortal()">🔐 دخول لوحة التاجر</button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- نموذج تسجيل الدخول للتاجر -->
+        <div id="loginBox" class="admin-section">
+            <h3>تسجيل دخول لوحة التحكم</h3>
+            <div class="form-group">
+                <label>اسم المستخدم:</label>
+                <input type="text" id="username" placeholder="اسم المستخدم">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور:</label>
+                <input type="password" id="password" placeholder="كلمة المرور">
+            </div>
+            <button class="action-btn" onclick="checkLogin()">دخول</button>
+        </div>
+
+        <!-- لوحة تحكم التاجر -->
+        <div id="adminPanel" class="admin-section">
+            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم التاجر: أضف منتجاً جديداً (سحابياً)</h3>
+            <div class="form-group">
+                <label>اسم المنتج:</label>
+                <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
+            </div>
+            <div class="form-group">
+                <label>السعر:</label>
+                <input type="text" id="newPrice" placeholder="مثال: 3200 دج">
+            </div>
+            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;">حفظ ونشر المنتج للجميع</button>
+        </div>
+
+        <h2 style="margin-bottom: 20px; text-align: center;">قائمة المنتجات المتوفرة</h2>
+        
+        <!-- شبكة المنتجات -->
+        <div class="products-grid" id="productsGrid">
+            <p style="text-align: center; grid-column: 1/-1;">جاري تحميل المنتجات السحابية...</p>
+        </div>
+    </div>
+
+    <script>
+        const clientWhatsAppNumber = "213562957309"; 
+        const adminUser = "admin";
+        const adminPass = "1234";
+
+        // معلومات السحابة المحدثة والصحيحة
+        const BIN_ID = "6a96e7b1da38895dfe2b7f17"; 
+        const API_KEY = "$2a$10$J75l.VfvTJT.df3ntnHrj.xq8.NseTPAKkgDYV5/5wkCWJ9haC2d0"; 
+
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        // جلب المنتجات
+        async function fetchProductsFromCloud() {
+            try {
+                let response = await fetch(`${API_URL}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                let data = await response.json();
+                return data.record.products || [];
+            } catch (error) {
+                console.error("خطأ في جلب البيانات:", error);
+                return [];
+            }
+        }
+
+        // عرض المنتجات
+        async function renderProducts() {
+            let grid = document.getElementById('productsGrid');
+            let products = await fetchProductsFromCloud();
+            grid.innerHTML = '';
+
+            if (products.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">لا توجد منتجات حالياً.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                let card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-img">صورة المنتج</div>
+                    <div class="product-title">${product.title}</div>
+                    <div class="product-price">${product.price}</div>
+                    <button class="buy-btn" onclick="orderOnWhatsApp('${product.title}', '${product.price}')">اطلب عبر واتساب</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openAdminPortal() {
+            let loginBox = document.getElementById('loginBox');
+            let adminPanel = document.getElementById('adminPanel');
+            if (loginBox.style.display === 'block' || adminPanel.style.display === 'block') {
+                loginBox.style.display = 'none';
+                adminPanel.style.display = 'none';
+            } else {
+                loginBox.style.display = 'block';
+            }
+        }
+
+        function checkLogin() {
+            let user = document.getElementById('username').value;
+            let pass = document.getElementById('password').value;
+            if (user === adminUser && pass === adminPass) {
+                alert('تم تسجيل الدخول بنجاح!');
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                alert('خطأ في اسم المستخدم أو كلمة المرور!');
+            }
+        }
+
+        // إضافة منتج جديد وتحديث السحابة (PUT)
+        async function addNewProduct() {
+            let title = document.getElementById('newTitle').value.trim();
+            let price = document.getElementById('newPrice').value.trim();
+
+            if (title === '' || price === '') {
+                alert('الرجاء تعبئة جميع الحقول!');
+                return;
+            }
+
+            try {
+                // 1. جلب المنتجات الحالية أولاً
+                let currentProducts = await fetchProductsFromCloud();
+
+                // 2. إضافة المنتج الجديد للقائمة
+                currentProducts.push({ title: title, price: price });
+
+                // 3. إرسال القائمة المحدثة للسحابة عبر PUT
+                let response = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({ products: currentProducts })
+                });
+
+                if (response.ok) {
+                    alert('تمت إضافة المنتج بنجاح وأصبح ظاهراً لجميع الزبائن!');
+                    document.getElementById('newTitle').value = '';
+                    document.getElementById('newPrice').value = '';
+                    renderProducts(); // إعادة تحميل العرض
+                } else {
+                    alert('حدث خطأ أثناء الحفظ بالسحابة.');
+                }
+            } catch (e) {
+                alert('فشل الاتصال بالإنترنت.');
+            }
+        }
+
+        function orderOnWhatsApp(productName, productPrice) {
+            let message = `مرحباً، أريـد طلب هذا المنتج:\n*${productName}*\nالسعر: ${productPrice}`;
+            window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        window.onload = renderProducts;
+    </script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر العميل العصري</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tahoma', sans-serif;
+        }
+        body {
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .nav-btns button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            padding: 15px;
+        }
+        .product-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+        }
+        .product-title {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .product-price {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .buy-btn {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .buy-btn:hover {
+            background-color: #1ebd56;
+        }
+        .admin-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .action-btn {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">متجر العميل العصري</div>
+        <div class="nav-btns">
+            <button onclick="openAdminPortal()">🔐 دخول لوحة التاجر</button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- نموذج تسجيل الدخول للتاجر -->
+        <div id="loginBox" class="admin-section">
+            <h3>تسجيل دخول لوحة التحكم</h3>
+            <div class="form-group">
+                <label>اسم المستخدم:</label>
+                <input type="text" id="username" placeholder="اسم المستخدم">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور:</label>
+                <input type="password" id="password" placeholder="كلمة المرور">
+            </div>
+            <button class="action-btn" onclick="checkLogin()">دخول</button>
+        </div>
+
+        <!-- لوحة تحكم التاجر -->
+        <div id="adminPanel" class="admin-section">
+            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم التاجر: أضف منتجاً جديداً (سحابياً)</h3>
+            <div class="form-group">
+                <label>اسم المنتج:</label>
+                <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
+            </div>
+            <div class="form-group">
+                <label>السعر:</label>
+                <input type="text" id="newPrice" placeholder="مثال: 3200 دج">
+            </div>
+            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;">حفظ ونشر المنتج للجميع</button>
+        </div>
+
+        <h2 style="margin-bottom: 20px; text-align: center;">قائمة المنتجات المتوفرة</h2>
+        
+        <!-- شبكة المنتجات -->
+        <div class="products-grid" id="productsGrid">
+            <p style="text-align: center; grid-column: 1/-1;">جاري تحميل المنتجات السحابية...</p>
+        </div>
+    </div>
+
+    <script>
+        const clientWhatsAppNumber = "213562957309"; 
+        const adminUser = "admin";
+        const adminPass = "1234";
+
+        // معلومات السحابة المحدثة والصحيحة
+        const BIN_ID = "6a96e7b1da38895dfe2b7f17"; 
+        const API_KEY = "$2a$10$J75l.VfvTJT.df3ntnHrj.xq8.NseTPAKkgDYV5/5wkCWJ9haC2d0"; 
+
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        // جلب المنتجات
+        async function fetchProductsFromCloud() {
+            try {
+                let response = await fetch(`${API_URL}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                let data = await response.json();
+                return data.record.products || [];
+            } catch (error) {
+                console.error("خطأ في جلب البيانات:", error);
+                return [];
+            }
+        }
+
+        // عرض المنتجات
+        async function renderProducts() {
+            let grid = document.getElementById('productsGrid');
+            let products = await fetchProductsFromCloud();
+            grid.innerHTML = '';
+
+            if (products.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">لا توجد منتجات حالياً.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                let card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-img">صورة المنتج</div>
+                    <div class="product-title">${product.title}</div>
+                    <div class="product-price">${product.price}</div>
+                    <button class="buy-btn" onclick="orderOnWhatsApp('${product.title}', '${product.price}')">اطلب عبر واتساب</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openAdminPortal() {
+            let loginBox = document.getElementById('loginBox');
+            let adminPanel = document.getElementById('adminPanel');
+            if (loginBox.style.display === 'block' || adminPanel.style.display === 'block') {
+                loginBox.style.display = 'none';
+                adminPanel.style.display = 'none';
+            } else {
+                loginBox.style.display = 'block';
+            }
+        }
+
+        function checkLogin() {
+            let user = document.getElementById('username').value;
+            let pass = document.getElementById('password').value;
+            if (user === adminUser && pass === adminPass) {
+                alert('تم تسجيل الدخول بنجاح!');
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                alert('خطأ في اسم المستخدم أو كلمة المرور!');
+            }
+        }
+
+        // إضافة منتج جديد وتحديث السحابة (PUT)
+        async function addNewProduct() {
+            let title = document.getElementById('newTitle').value.trim();
+            let price = document.getElementById('newPrice').value.trim();
+
+            if (title === '' || price === '') {
+                alert('الرجاء تعبئة جميع الحقول!');
+                return;
+            }
+
+            try {
+                // 1. جلب المنتجات الحالية أولاً
+                let currentProducts = await fetchProductsFromCloud();
+
+                // 2. إضافة المنتج الجديد للقائمة
+                currentProducts.push({ title: title, price: price });
+
+                // 3. إرسال القائمة المحدثة للسحابة عبر PUT
+                let response = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({ products: currentProducts })
+                });
+
+                if (response.ok) {
+                    alert('تمت إضافة المنتج بنجاح وأصبح ظاهراً لجميع الزبائن!');
+                    document.getElementById('newTitle').value = '';
+                    document.getElementById('newPrice').value = '';
+                    renderProducts(); // إعادة تحميل العرض
+                } else {
+                    alert('حدث خطأ أثناء الحفظ بالسحابة.');
+                }
+            } catch (e) {
+                alert('فشل الاتصال بالإنترنت.');
+            }
+        }
+
+        function orderOnWhatsApp(productName, productPrice) {
+            let message = `مرحباً، أريـد طلب هذا المنتج:\n*${productName}*\nالسعر: ${productPrice}`;
+            window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        window.onload = renderProducts;
+    </script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر العميل العصري</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tahoma', sans-serif;
+        }
+        body {
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .nav-btns button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            padding: 15px;
+        }
+        .product-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+        }
+        .product-title {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .product-price {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .buy-btn {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .buy-btn:hover {
+            background-color: #1ebd56;
+        }
+        .admin-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .action-btn {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">متجر العميل العصري</div>
+        <div class="nav-btns">
+            <button onclick="openAdminPortal()">🔐 دخول لوحة التاجر</button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- نموذج تسجيل الدخول للتاجر -->
+        <div id="loginBox" class="admin-section">
+            <h3>تسجيل دخول لوحة التحكم</h3>
+            <div class="form-group">
+                <label>اسم المستخدم:</label>
+                <input type="text" id="username" placeholder="اسم المستخدم">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور:</label>
+                <input type="password" id="password" placeholder="كلمة المرور">
+            </div>
+            <button class="action-btn" onclick="checkLogin()">دخول</button>
+        </div>
+
+        <!-- لوحة تحكم التاجر -->
+        <div id="adminPanel" class="admin-section">
+            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم التاجر: أضف منتجاً جديداً (سحابياً)</h3>
+            <div class="form-group">
+                <label>اسم المنتج:</label>
+                <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
+            </div>
+            <div class="form-group">
+                <label>السعر:</label>
+                <input type="text" id="newPrice" placeholder="مثال: 3200 دج">
+            </div>
+            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;">حفظ ونشر المنتج للجميع</button>
+        </div>
+
+        <h2 style="margin-bottom: 20px; text-align: center;">قائمة المنتجات المتوفرة</h2>
+        
+        <!-- شبكة المنتجات -->
+        <div class="products-grid" id="productsGrid">
+            <p style="text-align: center; grid-column: 1/-1;">جاري تحميل المنتجات السحابية...</p>
+        </div>
+    </div>
+
+    <script>
+        const clientWhatsAppNumber = "213562957309"; 
+        const adminUser = "admin";
+        const adminPass = "1234";
+
+        // معلومات السحابة المحدثة والصحيحة
+        const BIN_ID = "6a96e7b1da38895dfe2b7f17"; 
+        const API_KEY = "$2a$10$J75l.VfvTJT.df3ntnHrj.xq8.NseTPAKkgDYV5/5wkCWJ9haC2d0"; 
+
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        // جلب المنتجات
+        async function fetchProductsFromCloud() {
+            try {
+                let response = await fetch(`${API_URL}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                let data = await response.json();
+                return data.record.products || [];
+            } catch (error) {
+                console.error("خطأ في جلب البيانات:", error);
+                return [];
+            }
+        }
+
+        // عرض المنتجات
+        async function renderProducts() {
+            let grid = document.getElementById('productsGrid');
+            let products = await fetchProductsFromCloud();
+            grid.innerHTML = '';
+
+            if (products.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">لا توجد منتجات حالياً.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                let card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-img">صورة المنتج</div>
+                    <div class="product-title">${product.title}</div>
+                    <div class="product-price">${product.price}</div>
+                    <button class="buy-btn" onclick="orderOnWhatsApp('${product.title}', '${product.price}')">اطلب عبر واتساب</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openAdminPortal() {
+            let loginBox = document.getElementById('loginBox');
+            let adminPanel = document.getElementById('adminPanel');
+            if (loginBox.style.display === 'block' || adminPanel.style.display === 'block') {
+                loginBox.style.display = 'none';
+                adminPanel.style.display = 'none';
+            } else {
+                loginBox.style.display = 'block';
+            }
+        }
+
+        function checkLogin() {
+            let user = document.getElementById('username').value;
+            let pass = document.getElementById('password').value;
+            if (user === adminUser && pass === adminPass) {
+                alert('تم تسجيل الدخول بنجاح!');
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                alert('خطأ في اسم المستخدم أو كلمة المرور!');
+            }
+        }
+
+        // إضافة منتج جديد وتحديث السحابة (PUT)
+        async function addNewProduct() {
+            let title = document.getElementById('newTitle').value.trim();
+            let price = document.getElementById('newPrice').value.trim();
+
+            if (title === '' || price === '') {
+                alert('الرجاء تعبئة جميع الحقول!');
+                return;
+            }
+
+            try {
+                // 1. جلب المنتجات الحالية أولاً
+                let currentProducts = await fetchProductsFromCloud();
+
+                // 2. إضافة المنتج الجديد للقائمة
+                currentProducts.push({ title: title, price: price });
+
+                // 3. إرسال القائمة المحدثة للسحابة عبر PUT
+                let response = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({ products: currentProducts })
+                });
+
+                if (response.ok) {
+                    alert('تمت إضافة المنتج بنجاح وأصبح ظاهراً لجميع الزبائن!');
+                    document.getElementById('newTitle').value = '';
+                    document.getElementById('newPrice').value = '';
+                    renderProducts(); // إعادة تحميل العرض
+                } else {
+                    alert('حدث خطأ أثناء الحفظ بالسحابة.');
+                }
+            } catch (e) {
+                alert('فشل الاتصال بالإنترنت.');
+            }
+        }
+
+        function orderOnWhatsApp(productName, productPrice) {
+            let message = `مرحباً، أريـد طلب هذا المنتج:\n*${productName}*\nالسعر: ${productPrice}`;
+            window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        window.onload = renderProducts;
+    </script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر العميل العصري</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tahoma', sans-serif;
+        }
+        body {
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .nav-btns button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            padding: 15px;
+        }
+        .product-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+        }
+        .product-title {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .product-price {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .buy-btn {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .buy-btn:hover {
+            background-color: #1ebd56;
+        }
+        .admin-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .action-btn {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">متجر العميل العصري</div>
+        <div class="nav-btns">
+            <button onclick="openAdminPortal()">🔐 دخول لوحة التاجر</button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- نموذج تسجيل الدخول للتاجر -->
+        <div id="loginBox" class="admin-section">
+            <h3>تسجيل دخول لوحة التحكم</h3>
+            <div class="form-group">
+                <label>اسم المستخدم:</label>
+                <input type="text" id="username" placeholder="اسم المستخدم">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور:</label>
+                <input type="password" id="password" placeholder="كلمة المرور">
+            </div>
+            <button class="action-btn" onclick="checkLogin()">دخول</button>
+        </div>
+
+        <!-- لوحة تحكم التاجر -->
+        <div id="adminPanel" class="admin-section">
+            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم التاجر: أضف منتجاً جديداً (سحابياً)</h3>
+            <div class="form-group">
+                <label>اسم المنتج:</label>
+                <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
+            </div>
+            <div class="form-group">
+                <label>السعر:</label>
+                <input type="text" id="newPrice" placeholder="مثال: 3200 دج">
+            </div>
+            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;">حفظ ونشر المنتج للجميع</button>
+        </div>
+
+        <h2 style="margin-bottom: 20px; text-align: center;">قائمة المنتجات المتوفرة</h2>
+        
+        <!-- شبكة المنتجات -->
+        <div class="products-grid" id="productsGrid">
+            <p style="text-align: center; grid-column: 1/-1;">جاري تحميل المنتجات السحابية...</p>
+        </div>
+    </div>
+
+    <script>
+        const clientWhatsAppNumber = "213562957309"; 
+        const adminUser = "admin";
+        const adminPass = "1234";
+
+        // معلومات السحابة المحدثة والصحيحة
+        const BIN_ID = "6a96e7b1da38895dfe2b7f17"; 
+        const API_KEY = "$2a$10$J75l.VfvTJT.df3ntnHrj.xq8.NseTPAKkgDYV5/5wkCWJ9haC2d0"; 
+
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        // جلب المنتجات
+        async function fetchProductsFromCloud() {
+            try {
+                let response = await fetch(`${API_URL}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                let data = await response.json();
+                return data.record.products || [];
+            } catch (error) {
+                console.error("خطأ في جلب البيانات:", error);
+                return [];
+            }
+        }
+
+        // عرض المنتجات
+        async function renderProducts() {
+            let grid = document.getElementById('productsGrid');
+            let products = await fetchProductsFromCloud();
+            grid.innerHTML = '';
+
+            if (products.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">لا توجد منتجات حالياً.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                let card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-img">صورة المنتج</div>
+                    <div class="product-title">${product.title}</div>
+                    <div class="product-price">${product.price}</div>
+                    <button class="buy-btn" onclick="orderOnWhatsApp('${product.title}', '${product.price}')">اطلب عبر واتساب</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openAdminPortal() {
+            let loginBox = document.getElementById('loginBox');
+            let adminPanel = document.getElementById('adminPanel');
+            if (loginBox.style.display === 'block' || adminPanel.style.display === 'block') {
+                loginBox.style.display = 'none';
+                adminPanel.style.display = 'none';
+            } else {
+                loginBox.style.display = 'block';
+            }
+        }
+
+        function checkLogin() {
+            let user = document.getElementById('username').value;
+            let pass = document.getElementById('password').value;
+            if (user === adminUser && pass === adminPass) {
+                alert('تم تسجيل الدخول بنجاح!');
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                alert('خطأ في اسم المستخدم أو كلمة المرور!');
+            }
+        }
+
+        // إضافة منتج جديد وتحديث السحابة (PUT)
+        async function addNewProduct() {
+            let title = document.getElementById('newTitle').value.trim();
+            let price = document.getElementById('newPrice').value.trim();
+
+            if (title === '' || price === '') {
+                alert('الرجاء تعبئة جميع الحقول!');
+                return;
+            }
+
+            try {
+                // 1. جلب المنتجات الحالية أولاً
+                let currentProducts = await fetchProductsFromCloud();
+
+                // 2. إضافة المنتج الجديد للقائمة
+                currentProducts.push({ title: title, price: price });
+
+                // 3. إرسال القائمة المحدثة للسحابة عبر PUT
+                let response = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({ products: currentProducts })
+                });
+
+                if (response.ok) {
+                    alert('تمت إضافة المنتج بنجاح وأصبح ظاهراً لجميع الزبائن!');
+                    document.getElementById('newTitle').value = '';
+                    document.getElementById('newPrice').value = '';
+                    renderProducts(); // إعادة تحميل العرض
+                } else {
+                    alert('حدث خطأ أثناء الحفظ بالسحابة.');
+                }
+            } catch (e) {
+                alert('فشل الاتصال بالإنترنت.');
+            }
+        }
+
+        function orderOnWhatsApp(productName, productPrice) {
+            let message = `مرحباً، أريـد طلب هذا المنتج:\n*${productName}*\nالسعر: ${productPrice}`;
+            window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        window.onload = renderProducts;
+    </script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر العميل العصري</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tahoma', sans-serif;
+        }
+        body {
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .nav-btns button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            padding: 15px;
+        }
+        .product-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+        }
+        .product-title {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .product-price {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .buy-btn {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .buy-btn:hover {
+            background-color: #1ebd56;
+        }
+        .admin-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .action-btn {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">متجر العميل العصري</div>
+        <div class="nav-btns">
+            <button onclick="openAdminPortal()">🔐 دخول لوحة التاجر</button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- نموذج تسجيل الدخول للتاجر -->
+        <div id="loginBox" class="admin-section">
+            <h3>تسجيل دخول لوحة التحكم</h3>
+            <div class="form-group">
+                <label>اسم المستخدم:</label>
+                <input type="text" id="username" placeholder="اسم المستخدم">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور:</label>
+                <input type="password" id="password" placeholder="كلمة المرور">
+            </div>
+            <button class="action-btn" onclick="checkLogin()">دخول</button>
+        </div>
+
+        <!-- لوحة تحكم التاجر -->
+        <div id="adminPanel" class="admin-section">
+            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم التاجر: أضف منتجاً جديداً (سحابياً)</h3>
+            <div class="form-group">
+                <label>اسم المنتج:</label>
+                <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
+            </div>
+            <div class="form-group">
+                <label>السعر:</label>
+                <input type="text" id="newPrice" placeholder="مثال: 3200 دج">
+            </div>
+            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;">حفظ ونشر المنتج للجميع</button>
+        </div>
+
+        <h2 style="margin-bottom: 20px; text-align: center;">قائمة المنتجات المتوفرة</h2>
+        
+        <!-- شبكة المنتجات -->
+        <div class="products-grid" id="productsGrid">
+            <p style="text-align: center; grid-column: 1/-1;">جاري تحميل المنتجات السحابية...</p>
+        </div>
+    </div>
+
+    <script>
+        const clientWhatsAppNumber = "213562957309"; 
+        const adminUser = "admin";
+        const adminPass = "1234";
+
+        // معلومات السحابة المحدثة والصحيحة
+        const BIN_ID = "6a96e7b1da38895dfe2b7f17"; 
+        const API_KEY = "$2a$10$J75l.VfvTJT.df3ntnHrj.xq8.NseTPAKkgDYV5/5wkCWJ9haC2d0"; 
+
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        // جلب المنتجات
+        async function fetchProductsFromCloud() {
+            try {
+                let response = await fetch(`${API_URL}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                let data = await response.json();
+                return data.record.products || [];
+            } catch (error) {
+                console.error("خطأ في جلب البيانات:", error);
+                return [];
+            }
+        }
+
+        // عرض المنتجات
+        async function renderProducts() {
+            let grid = document.getElementById('productsGrid');
+            let products = await fetchProductsFromCloud();
+            grid.innerHTML = '';
+
+            if (products.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">لا توجد منتجات حالياً.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                let card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-img">صورة المنتج</div>
+                    <div class="product-title">${product.title}</div>
+                    <div class="product-price">${product.price}</div>
+                    <button class="buy-btn" onclick="orderOnWhatsApp('${product.title}', '${product.price}')">اطلب عبر واتساب</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openAdminPortal() {
+            let loginBox = document.getElementById('loginBox');
+            let adminPanel = document.getElementById('adminPanel');
+            if (loginBox.style.display === 'block' || adminPanel.style.display === 'block') {
+                loginBox.style.display = 'none';
+                adminPanel.style.display = 'none';
+            } else {
+                loginBox.style.display = 'block';
+            }
+        }
+
+        function checkLogin() {
+            let user = document.getElementById('username').value;
+            let pass = document.getElementById('password').value;
+            if (user === adminUser && pass === adminPass) {
+                alert('تم تسجيل الدخول بنجاح!');
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                alert('خطأ في اسم المستخدم أو كلمة المرور!');
+            }
+        }
+
+        // إضافة منتج جديد وتحديث السحابة (PUT)
+        async function addNewProduct() {
+            let title = document.getElementById('newTitle').value.trim();
+            let price = document.getElementById('newPrice').value.trim();
+
+            if (title === '' || price === '') {
+                alert('الرجاء تعبئة جميع الحقول!');
+                return;
+            }
+
+            try {
+                // 1. جلب المنتجات الحالية أولاً
+                let currentProducts = await fetchProductsFromCloud();
+
+                // 2. إضافة المنتج الجديد للقائمة
+                currentProducts.push({ title: title, price: price });
+
+                // 3. إرسال القائمة المحدثة للسحابة عبر PUT
+                let response = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({ products: currentProducts })
+                });
+
+                if (response.ok) {
+                    alert('تمت إضافة المنتج بنجاح وأصبح ظاهراً لجميع الزبائن!');
+                    document.getElementById('newTitle').value = '';
+                    document.getElementById('newPrice').value = '';
+                    renderProducts(); // إعادة تحميل العرض
+                } else {
+                    alert('حدث خطأ أثناء الحفظ بالسحابة.');
+                }
+            } catch (e) {
+                alert('فشل الاتصال بالإنترنت.');
+            }
+        }
+
+        function orderOnWhatsApp(productName, productPrice) {
+            let message = `مرحباً، أريـد طلب هذا المنتج:\n*${productName}*\nالسعر: ${productPrice}`;
+            window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        window.onload = renderProducts;
+    </script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر العميل العصري</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tahoma', sans-serif;
+        }
+        body {
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .nav-btns button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            padding: 15px;
+        }
+        .product-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+        }
+        .product-title {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .product-price {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .buy-btn {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .buy-btn:hover {
+            background-color: #1ebd56;
+        }
+        .admin-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .action-btn {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">متجر العميل العصري</div>
+        <div class="nav-btns">
+            <button onclick="openAdminPortal()">🔐 دخول لوحة التاجر</button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- نموذج تسجيل الدخول للتاجر -->
+        <div id="loginBox" class="admin-section">
+            <h3>تسجيل دخول لوحة التحكم</h3>
+            <div class="form-group">
+                <label>اسم المستخدم:</label>
+                <input type="text" id="username" placeholder="اسم المستخدم">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور:</label>
+                <input type="password" id="password" placeholder="كلمة المرور">
+            </div>
+            <button class="action-btn" onclick="checkLogin()">دخول</button>
+        </div>
+
+        <!-- لوحة تحكم التاجر -->
+        <div id="adminPanel" class="admin-section">
+            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم التاجر: أضف منتجاً جديداً (سحابياً)</h3>
+            <div class="form-group">
+                <label>اسم المنتج:</label>
+                <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
+            </div>
+            <div class="form-group">
+                <label>السعر:</label>
+                <input type="text" id="newPrice" placeholder="مثال: 3200 دج">
+            </div>
+            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;">حفظ ونشر المنتج للجميع</button>
+        </div>
+
+        <h2 style="margin-bottom: 20px; text-align: center;">قائمة المنتجات المتوفرة</h2>
+        
+        <!-- شبكة المنتجات -->
+        <div class="products-grid" id="productsGrid">
+            <p style="text-align: center; grid-column: 1/-1;">جاري تحميل المنتجات السحابية...</p>
+        </div>
+    </div>
+
+    <script>
+        const clientWhatsAppNumber = "213562957309"; 
+        const adminUser = "admin";
+        const adminPass = "1234";
+
+        // معلومات السحابة المحدثة والصحيحة
+        const BIN_ID = "6a96e7b1da38895dfe2b7f17"; 
+        const API_KEY = "$2a$10$J75l.VfvTJT.df3ntnHrj.xq8.NseTPAKkgDYV5/5wkCWJ9haC2d0"; 
+
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        // جلب المنتجات
+        async function fetchProductsFromCloud() {
+            try {
+                let response = await fetch(`${API_URL}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                let data = await response.json();
+                return data.record.products || [];
+            } catch (error) {
+                console.error("خطأ في جلب البيانات:", error);
+                return [];
+            }
+        }
+
+        // عرض المنتجات
+        async function renderProducts() {
+            let grid = document.getElementById('productsGrid');
+            let products = await fetchProductsFromCloud();
+            grid.innerHTML = '';
+
+            if (products.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">لا توجد منتجات حالياً.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                let card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-img">صورة المنتج</div>
+                    <div class="product-title">${product.title}</div>
+                    <div class="product-price">${product.price}</div>
+                    <button class="buy-btn" onclick="orderOnWhatsApp('${product.title}', '${product.price}')">اطلب عبر واتساب</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openAdminPortal() {
+            let loginBox = document.getElementById('loginBox');
+            let adminPanel = document.getElementById('adminPanel');
+            if (loginBox.style.display === 'block' || adminPanel.style.display === 'block') {
+                loginBox.style.display = 'none';
+                adminPanel.style.display = 'none';
+            } else {
+                loginBox.style.display = 'block';
+            }
+        }
+
+        function checkLogin() {
+            let user = document.getElementById('username').value;
+            let pass = document.getElementById('password').value;
+            if (user === adminUser && pass === adminPass) {
+                alert('تم تسجيل الدخول بنجاح!');
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                alert('خطأ في اسم المستخدم أو كلمة المرور!');
+            }
+        }
+
+        // إضافة منتج جديد وتحديث السحابة (PUT)
+        async function addNewProduct() {
+            let title = document.getElementById('newTitle').value.trim();
+            let price = document.getElementById('newPrice').value.trim();
+
+            if (title === '' || price === '') {
+                alert('الرجاء تعبئة جميع الحقول!');
+                return;
+            }
+
+            try {
+                // 1. جلب المنتجات الحالية أولاً
+                let currentProducts = await fetchProductsFromCloud();
+
+                // 2. إضافة المنتج الجديد للقائمة
+                currentProducts.push({ title: title, price: price });
+
+                // 3. إرسال القائمة المحدثة للسحابة عبر PUT
+                let response = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({ products: currentProducts })
+                });
+
+                if (response.ok) {
+                    alert('تمت إضافة المنتج بنجاح وأصبح ظاهراً لجميع الزبائن!');
+                    document.getElementById('newTitle').value = '';
+                    document.getElementById('newPrice').value = '';
+                    renderProducts(); // إعادة تحميل العرض
+                } else {
+                    alert('حدث خطأ أثناء الحفظ بالسحابة.');
+                }
+            } catch (e) {
+                alert('فشل الاتصال بالإنترنت.');
+            }
+        }
+
+        function orderOnWhatsApp(productName, productPrice) {
+            let message = `مرحباً، أريـد طلب هذا المنتج:\n*${productName}*\nالسعر: ${productPrice}`;
+            window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        window.onload = renderProducts;
     </script>
 
 </body>
