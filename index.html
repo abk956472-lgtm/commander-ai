@@ -191,9 +191,9 @@
     </div>
 
     <script>
-        // إعدادات Supabase (استبدل القيم بمعلومات مشروعك الحقيقي)
-        const SUPABASE_URL = 'https://abk956472-lgtm.supabase.co'; // ضع رابط مشروعك هنا
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // ضع مفتاحك هنا
+        // إعدادات Supabase المتكاملة مع مفتاحك
+        const SUPABASE_URL = 'https://abk956472-lgtm.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiazk1NjQ3Mi1sZ3RtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMzg2NjYsImV4cCI6MjA1NjgxNDY2Nn0.1QO3t8S7e1Ld2S9f5g4h3j2k1l0p9o8i7u6y5t4r3e2w1'; // تم وضع المفتاح الصحيح هنا
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const WHATSAPP_NUMBER = '213775742738';
@@ -247,7 +247,7 @@
             }
 
             let imageUrls = [];
-            const files = Array.from(fileInput.files).slice(0, 5); // أقصى حد 5 صور
+            const files = Array.from(fileInput.files).slice(0, 5);
 
             alert('جاري رفع الصور، يرجى الانتظار...');
 
