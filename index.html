@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CK-LUXE</title>
-    <!-- استدعاء مكتبة Supabase الرسمية (لتحميل صور المنتجات فقط) -->
+    <!-- استدعاء مكتبة Supabase الرسمية -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -209,6 +209,7 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
+        /* نافذة إتمام الطلب واختيار الولاية والبلدية */
         #orderModal {
             display: none;
             position: fixed;
@@ -296,9 +297,9 @@
             <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم CK-LUXE</h3>
             
             <div class="form-group" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px dashed #8e44ad;">
-                <label style="color: #8e44ad;">🖼️ التحكم بخلفية الموقع (تخزين محلي):</label>
+                <label style="color: #8e44ad;">🖼️ التحكم بخلفية الموقع (تظهر لجميع الزوار):</label>
                 <button class="action-btn" onclick="document.getElementById('bgImageInput').click()" style="background-color: #8e44ad; margin-top: 5px;">اختر صورة الخلفية الجديدة</button>
-                <input type="file" id="bgImageInput" accept="image/*" style="display: none;" onchange="changeBackgroundLocally(event)">
+                <input type="file" id="bgImageInput" accept="image/*" style="display: none;" onchange="uploadAndChangeBackground(event)">
             </div>
 
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
@@ -316,7 +317,7 @@
                 <label>صورة المنتج:</label>
                 <input type="file" id="productImage" accept="image/*">
             </div>
-            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;" id="saveBtn">حفظ ونشر المنتج</button>
+            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;" id="saveBtn">حفظ ونشر المنتج للسيرفر</button>
             
             <button class="logout-btn" onclick="logoutAdmin()">تسجيل الخروج</button>
         </div>
@@ -324,7 +325,7 @@
         <h2 style="margin-bottom: 20px; text-align: center;">تشكيلة المنتجات المميزة</h2>
         
         <div class="products-grid" id="productsGrid">
-            <p style="text-align: center; grid-column: 1/-1; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">جاري جلب المنتجات...</p>
+            <p style="text-align: center; grid-column: 1/-1; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">جاري جلب المنتجات من سيرفرك الخاص...</p>
         </div>
     </div>
 
@@ -382,7 +383,7 @@
                     <option value="43" data-price="700">43 - ميلة (700 دج)</option>
                     <option value="44" data-price="700">44 - عين الدفلى (700 دج)</option>
                     <option value="45" data-price="1000">45 - النعامة (1000 دج)</option>
-                    <option value="46" data-price="800">8 - عين تيموشنت (800 دج)</option>
+                    <option value="46" data-price="800">46 - عين تيموشنت (800 دج)</option>
                     <option value="47" data-price="900">47 - غرداية (900 دج)</option>
                     <option value="48" data-price="800">48 - غليزان (800 دج)</option>
                     <option value="49" data-price="1000">49 - أولاد جلال (1000 دج)</option>
@@ -419,6 +420,7 @@
     <script>
         const SUPABASE_URL = "https://lvthnzfubbrhyfnwqaxs.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_dxFosZXqkQfgc0qexLu0jw_FJ8xLY_G";
+
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const clientWhatsAppNumber = "213775742738"; 
@@ -435,46 +437,72 @@
                 document.getElementById('portalBtn').innerText = "⚙️ لوحة التحكم";
             }
 
-            loadSiteBackground();
+            fetchSiteBackground();
             renderProducts();
         });
 
-        // استرجاع وتطبيق الخلفية من التذاكر المحلية (LocalStorage)
-        function loadSiteBackground() {
-            let savedBg = localStorage.getItem('site_background');
-            if (savedBg) {
-                document.body.style.backgroundImage = `url('${savedBg}')`;
+        async function fetchSiteBackground() {
+            try {
+                let { data, error } = await supabaseClient.from('settings').select('*').eq('key', 'background').single();
+                if (data && data.value) {
+                    document.body.style.backgroundImage = `url('${data.value}')`;
+                }
+            } catch (e) {
+                console.log("لم يتم تعيين خلفية مخصصة بعد.");
             }
         }
 
-        // تغيير الخلفية وتخزينها محلياً فوراً
-        function changeBackgroundLocally(event) {
+        async function uploadAndChangeBackground(event) {
             let file = event.target.files[0];
             if (file) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    let base64Image = e.target.result;
-                    localStorage.setItem('site_background', base64Image);
-                    document.body.style.backgroundImage = `url('${base64Image}')`;
-                    alert('تم تغيير وتخزين الخلفية محلياً بنجاح!');
-                };
-                reader.readAsDataURL(file);
+                let fileExt = file.name.split('.').pop();
+                let fileName = `bg_${Date.now()}.${fileExt}`;
+                
+                alert('جاري رفع وتحديث الخلفية لجميع الزبائن...');
+
+                let { data: uploadData, error: uploadError } = await supabaseClient.storage
+                    .from('product-images')
+                    .upload(fileName, file);
+
+                if (uploadError) {
+                    alert('خطأ أثناء رفع الصورة: ' + uploadError.message);
+                    return;
+                }
+
+                let { data: publicUrlData } = supabaseClient.storage
+                    .from('product-images')
+                    .getPublicUrl(fileName);
+
+                let imageUrl = publicUrlData.publicUrl;
+
+                await supabaseClient.from('settings').upsert({ key: 'background', value: imageUrl });
+
+                document.body.style.backgroundImage = `url('${imageUrl}')`;
+                alert('تم تغيير وتطبيق الخلفية بنجاح لتظهر لجميع الزوار!');
             }
         }
 
-        // جلب المنتجات من التخزين المحلي
-        function getLocalProducts() {
-            let products = localStorage.getItem('site_products');
-            return products ? JSON.parse(products) : [];
+        async function fetchProductsFromCloud() {
+            try {
+                let { data, error } = await supabaseClient.from('products').select('*');
+                if (error) {
+                    console.error("خطأ في جلب البيانات:", error);
+                    return [];
+                }
+                return data || [];
+            } catch (error) {
+                console.error("خطأ الاتصال:", error);
+                return [];
+            }
         }
 
-        function renderProducts() {
+        async function renderProducts() {
             let grid = document.getElementById('productsGrid');
-            let products = getLocalProducts();
+            let products = await fetchProductsFromCloud();
             grid.innerHTML = '';
 
             if (products.length === 0) {
-                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">لا توجد منتجات حالياً.</p>';
+                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">لا توجد منتجات حالياً في السيرفر.</p>';
                 return;
             }
 
@@ -501,11 +529,13 @@
 
         async function deleteProduct(productTitle) {
             if (confirm(`هل أنت متأكد من رغبتك في حذف المنتج: ${productTitle}؟`)) {
-                let products = getLocalProducts();
-                products = products.filter(p => p.title !== productTitle);
-                localStorage.setItem('site_products', JSON.stringify(products));
-                alert('تم حذف المنتج بنجاح!');
-                renderProducts();
+                let { error } = await supabaseClient.from('products').delete().eq('title', productTitle);
+                if (error) {
+                    alert('خطأ أثناء الحذف: ' + error.message);
+                } else {
+                    alert('تم حذف المنتج بنجاح!');
+                    renderProducts();
+                }
             }
         }
 
@@ -601,7 +631,6 @@
             location.reload();
         }
 
-        // حفظ المنتجات محلياً (مع دعم صور المنتجات وتحويلها لتخزين محلي مباشر)
         async function addNewProduct() {
             let title = document.getElementById('newTitle').value.trim();
             let price = document.getElementById('newPrice').value.trim();
@@ -613,37 +642,59 @@
                 return;
             }
 
-            saveBtn.innerText = "جاري الحفظ محلياً...";
+            saveBtn.innerText = "جاري رفع الصورة وحفظ المنتج...";
             saveBtn.disabled = true;
 
             let imageUrl = "";
 
-            if (imageInput.files.length > 0) {
-                let file = imageInput.files[0];
-                imageUrl = await new Promise((resolve) => {
-                    let reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsDataURL(file);
-                });
+            try {
+                if (imageInput.files.length > 0) {
+                    let file = imageInput.files[0];
+                    let fileExt = file.name.split('.').pop();
+                    let fileName = `${Date.now()}.${fileExt}`;
+                    let filePath = `${fileName}`;
+
+                    let { data: uploadData, error: uploadError } = await supabaseClient.storage
+                        .from('product-images')
+                        .upload(filePath, file);
+
+                    if (uploadError) {
+                        alert('خطأ أثناء رفع الصورة: ' + uploadError.message);
+                        saveBtn.innerText = "حفظ ونشر المنتج للسيرفر";
+                        saveBtn.disabled = false;
+                        return;
+                    }
+
+                    let { data: publicUrlData } = supabaseClient.storage
+                        .from('product-images')
+                        .getPublicUrl(filePath);
+
+                    imageUrl = publicUrlData.publicUrl;
+                }
+
+                let { error: insertError } = await supabaseClient
+                    .from('products')
+                    .insert([{ 
+                        title: title, 
+                        pricee: price, 
+                        image_url: imageUrl 
+                    }]);
+
+                if (insertError) {
+                    alert('حدث خطأ أثناء حفظ المنتج في السيرفر: ' + insertError.message);
+                } else {
+                    alert('تمت إضافة المنتج وصورته بنجاح وأصبح ظاهراً لجميع الزبائن!');
+                    document.getElementById('newTitle').value = '';
+                    document.getElementById('newPrice').value = '';
+                    imageInput.value = '';
+                    renderProducts(); 
+                }
+            } catch (e) {
+                alert('فشل الاتصال بالسيرفر.');
+            } finally {
+                saveBtn.innerText = "حفظ ونشر المنتج للسيرفر";
+                saveBtn.disabled = false;
             }
-
-            let products = getLocalProducts();
-            products.push({
-                title: title,
-                pricee: price,
-                image_url: imageUrl
-            });
-
-            localStorage.setItem('site_products', JSON.stringify(products));
-
-            alert('تمت إضافة المنتج بنجاح وتخزينه محلياً!');
-            document.getElementById('newTitle').value = '';
-            document.getElementById('newPrice').value = '';
-            imageInput.value = '';
-            
-            saveBtn.innerText = "حفظ ونشر المنتج";
-            saveBtn.disabled = false;
-            renderProducts();
         }
     </script>
 
