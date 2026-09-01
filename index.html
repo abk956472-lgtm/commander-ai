@@ -121,14 +121,9 @@
         async function fetchProductsFromCloud() {
             try {
                 let { data, error } = await supabaseClient.from('products').select('*');
-                if (error) {
-                    console.error("خطأ Supabase:", error);
-                    return [];
-                }
-                console.log("المنتجات المسترجعة:", data);
+                if (error) return [];
                 return data || [];
             } catch (e) {
-                console.error("خطأ اتصال:", e);
                 return [];
             }
         }
@@ -149,9 +144,8 @@
                 let card = document.createElement('div');
                 card.className = 'product-card';
                 
-                // دعم مرن لأسماء الأعمدة (سواء كانت price أو pricee و image_url أو img)
                 let title = product.title || product.name || 'بدون اسم';
-                let price = product.price || product.pricee || product.sier || 'غير محدد';
+                let price = product.pricee || product.price || product.sier || 'غير محدد';
                 let imgSrc = product.image_url || product.img || product.image || 'https://via.placeholder.com/250?text=No+Image';
 
                 card.innerHTML = `
@@ -229,10 +223,15 @@
                     imageUrl = publicUrlData.publicUrl;
                 }
 
-                // إرسال البيانات (ندعم الحقلين price و pricee لضمان عدم حدوث خطأ)
+                // نرسل الحقلين معاً (price و pricee) لضمان التوافق التام مع أي قاعدة بيانات
                 let { error: insertError } = await supabaseClient
                     .from('products')
-                    .insert([{ title: title, price: price, pricee: price, image_url: imageUrl }]);
+                    .insert([{ 
+                        title: title, 
+                        price: price, 
+                        pricee: price, 
+                        image_url: imageUrl 
+                    }]);
 
                 if (insertError) {
                     alert('حدث خطأ أثناء حفظ المنتج في السيرفر: ' + insertError.message);
