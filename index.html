@@ -14,12 +14,18 @@
             font-family: 'Tahoma', sans-serif;
         }
         body {
+            /* الخلفية الافتراضية أو التي يتم اختيارها */
             background: linear-gradient(135deg, #f4f7f6 0%, #e2e8f0 100%);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: #333;
             min-height: 100vh;
+            transition: background 0.5s ease;
         }
         header {
-            background-color: #1a1a1a;
+            background-color: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(5px);
             color: white;
             padding: 15px 20px;
             display: flex;
@@ -32,6 +38,10 @@
             font-weight: bold;
             letter-spacing: 1px;
             color: #f39c12;
+        }
+        .nav-btns {
+            display: flex;
+            gap: 10px;
         }
         .nav-btns button {
             background-color: #f39c12;
@@ -73,7 +83,7 @@
             backdrop-filter: blur(5px);
             border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             text-align: center;
             padding: 10px;
             transition: transform 0.3s;
@@ -138,10 +148,11 @@
             background-color: #c0392b;
         }
         .admin-section {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             margin-bottom: 30px;
             display: none;
         }
@@ -179,7 +190,8 @@
             background-color: #333;
         }
         h2 {
-            color: #1a1a1a;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         #imageModal {
@@ -217,6 +229,10 @@
     <header>
         <div class="logo">CK-LUXE</div>
         <div class="nav-btns">
+            <!-- زر تغيير الخلفية المخفي خلف صلاحية التاجر أو متاح للجميع (متاح هنا لتسهيل التحكم) -->
+            <button onclick="document.getElementById('bgImageInput').click()" style="background-color: #8e44ad;">🖼️ تغيير خلفية الموقع</button>
+            <input type="file" id="bgImageInput" accept="image/*" style="display: none;" onchange="changeBackground(event)">
+            
             <button onclick="openAdminPortal()">🔐 دخول لوحة التاجر</button>
         </div>
     </header>
@@ -256,7 +272,7 @@
         <h2 style="margin-bottom: 20px; text-align: center;">تشكيلة المنتجات المميزة</h2>
         
         <div class="products-grid" id="productsGrid">
-            <p style="text-align: center; grid-column: 1/-1;">جاري جلب المنتجات من سيرفرك الخاص...</p>
+            <p style="text-align: center; grid-column: 1/-1; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">جاري جلب المنتجات من سيرفرك الخاص...</p>
         </div>
     </div>
 
@@ -276,6 +292,31 @@
         const adminPass = "1234";
         
         let isUserAdmin = false;
+
+        // تطبيق الخلفية المحفوظة مسبقاً فور فتح الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            let savedBg = localStorage.getItem('site_background');
+            if (savedBg) {
+                document.body.style.backgroundImage = `url('${savedBg}')`;
+            }
+            renderProducts();
+        });
+
+        // دالة تغيير خلفية الموقع وحفظها
+        function changeBackground(event) {
+            let file = event.target.files[0];
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let imageUrl = e.target.result;
+                    document.body.style.backgroundImage = `url('${imageUrl}')`;
+                    // حفظ الصورة في الذاكرة المحلية للجهاز
+                    localStorage.setItem('site_background', imageUrl);
+                    alert('تم تغيير خلفية الموقع بنجاح!');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
 
         async function fetchProductsFromCloud() {
             try {
@@ -297,7 +338,7 @@
             grid.innerHTML = '';
 
             if (products.length === 0) {
-                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">لا توجد منتجات حالياً في السيرفر.</p>';
+                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">لا توجد منتجات حالياً في السيرفر.</p>';
                 return;
             }
 
@@ -321,7 +362,6 @@
             });
         }
 
-        // تم تعديل دالة الحذف لتعتمد على اسم المنتج (title) وليس الـ id
         async function deleteProduct(productTitle) {
             if (confirm(`هل أنت متأكد من رغبتك في حذف المنتج: ${productTitle}؟`)) {
                 let { error } = await supabaseClient.from('products').delete().eq('title', productTitle);
@@ -441,8 +481,6 @@
             let message = `مرحباً، أريـد طلب هذا المنتج من متجر CK-LUXE:\n*${productName}*\nالسعر: ${productPrice}`;
             window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
         }
-
-        window.onload = renderProducts;
     </script>
 
 </body>
