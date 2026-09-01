@@ -163,14 +163,15 @@
             font-weight: bold;
             color: #34495e;
         }
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
             outline: none;
+            background: #fff;
         }
-        .form-group input:focus {
+        .form-group input:focus, .form-group select:focus {
             border-color: #f39c12;
         }
         .action-btn {
@@ -206,6 +207,33 @@
         h2 {
             color: #fff;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* نافذة إتمام الطلب واختيار الولاية */
+        #orderModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            align-items: center;
+            justify-content: center;
+        }
+        .order-box {
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            text-align: right;
+        }
+        .order-box h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
         }
 
         #imageModal {
@@ -289,7 +317,7 @@
             </div>
             <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;" id="saveBtn">حفظ ونشر المنتج للسيرفر</button>
             
-            <!-- زر تسجيل الخروج للتاجر إن رغب في الخروج -->
+            <!-- زر تسجيل الخروج للتاجر -->
             <button class="logout-btn" onclick="logoutAdmin()">تسجيل الخروج</button>
         </div>
 
@@ -297,6 +325,34 @@
         
         <div class="products-grid" id="productsGrid">
             <p style="text-align: center; grid-column: 1/-1; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">جاري جلب المنتجات من سيرفرك الخاص...</p>
+        </div>
+    </div>
+
+    <!-- نافذة إتمام الطلب واختيار الولاية -->
+    <div id="orderModal">
+        <div class="order-box">
+            <h3>إتمام الطلب عبر واتساب</h3>
+            <p id="modalProductInfo" style="margin-bottom: 15px; font-weight: bold; color: #555;"></p>
+            
+            <div class="form-group">
+                <label>اختر ولايتك:</label>
+                <select id="wilayaSelect" onchange="updateShippingCost()">
+                    <option value="35" data-price="400">35- بومرداس (400 دج)</option>
+                    <option value="16" data-price="500">16- الجزائر العاصمة (500 دج)</option>
+                    <option value="15" data-price="600">15- تيزي وزو (600 دج)</option>
+                    <option value="10" data-price="600">10- البويرة (600 دج)</option>
+                    <option value="other_home" data-price="800">باقي الولايـات - توصيل للمنزل (800 دج)</option>
+                    <option value="other_desk" data-price="500">باقي الولايـات - توصيل للمكتب (500 دج)</option>
+                </select>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px;">
+                <p>سعر التوصيل: <span id="shippingDisplay" style="color: #e67e22; font-weight: bold;">400 دج</span></p>
+                <p style="margin-top: 5px;">الإجمالي الكلي: <span id="totalDisplay" style="color: #27ae60; font-weight: bold;">0 دج</span></p>
+            </div>
+
+            <button class="buy-btn" onclick="confirmWhatsAppOrder()" style="background-color: #25d366; padding: 10px;">إرسال الطلب عبر واتساب</button>
+            <button class="action-btn" onclick="closeOrderModal()" style="background-color: #95a5a6; margin-top: 8px; padding: 8px;">إلغاء</button>
         </div>
     </div>
 
@@ -316,9 +372,9 @@
         const adminPass = "1234";
         
         let isUserAdmin = false;
+        let selectedProductForOrder = { title: '', price: 0 };
 
         window.addEventListener('DOMContentLoaded', () => {
-            // التحقق مما إذا كان التاجر مسجلاً مسبقاً من الذاكرة المحلية
             let savedAdminState = localStorage.getItem('is_admin_logged');
             if (savedAdminState === 'true') {
                 isUserAdmin = true;
@@ -400,14 +456,15 @@
                 
                 let imgSrc = product.image_url ? product.image_url : 'https://via.placeholder.com/250?text=No+Image';
                 let productTitle = product.title || '';
+                let productPrice = product.pricee || '';
 
                 let deleteButtonHtml = isUserAdmin ? `<button class="delete-btn" onclick="deleteProduct('${productTitle.replace(/'/g, "\\'")}')">حذف المنتج</button>` : '';
 
                 card.innerHTML = `
                     <img src="${imgSrc}" class="product-img" alt="صورة المنتج" onclick="openModal('${imgSrc}')">
                     <div class="product-title">${productTitle}</div>
-                    <div class="product-price">${product.pricee}</div>
-                    <button class="buy-btn" onclick="orderOnWhatsApp('${productTitle}', '${product.pricee}')">اطلب عبر واتساب</button>
+                    <div class="product-price">${productPrice}</div>
+                    <button class="buy-btn" onclick="openOrderModal('${productTitle.replace(/'/g, "\\'")}', '${productPrice}')">اطلب عبر واتساب</button>
                     ${deleteButtonHtml}
                 `;
                 grid.appendChild(card);
@@ -437,6 +494,53 @@
             document.getElementById('imageModal').style.display = 'none';
         }
 
+        // فتح نافذة اختيار الولاية عند الضغط على زر الشراء
+        function openOrderModal(productTitle, productPrice) {
+            selectedProductForOrder.title = productTitle;
+            
+            // استخراج الأرقام فقط من السعر لحساب الإجمالي بدقة
+            let cleanPrice = parseInt(productPrice.replace(/[^0-9]/g, '')) || 0;
+            selectedProductForOrder.price = cleanPrice;
+
+            document.getElementById('modalProductInfo').innerText = `المنتج: ${productTitle} (${productPrice})`;
+            document.getElementById('orderModal').style.display = 'flex';
+            updateShippingCost();
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+
+        // تحديث سعر التوصيل والإجمالي بناءً على الاختيار
+        function updateShippingCost() {
+            let select = document.getElementById('wilayaSelect');
+            let selectedOption = select.options[select.selectedIndex];
+            let shippingCost = parseInt(selectedOption.getAttribute('data-price')) || 0;
+            
+            document.getElementById('shippingDisplay').innerText = shippingCost + " دج";
+            
+            let total = selectedProductForOrder.price + shippingCost;
+            document.getElementById('totalDisplay').innerText = total + " دج";
+        }
+
+        // إرسال الطلب النهائي عبر الواتساب مع التفاصيل
+        function confirmWhatsAppOrder() {
+            let select = document.getElementById('wilayaSelect');
+            let wilayaText = select.options[select.selectedIndex].text;
+            let shippingCost = select.options[select.selectedIndex].getAttribute('data-price');
+            let total = selectedProductForOrder.price + parseInt(shippingCost);
+
+            let message = `مرحباً، أريـد طلب هذا المنتج من متجر CK-LUXE:\n\n` +
+                          `📦 *المنتج:* ${selectedProductForOrder.title}\n` +
+                          `💵 *سعر المنتج:* ${selectedProductForOrder.price} دج\n` +
+                          `📍 *الولاية / التوصيل:* ${wilayaText}\n` +
+                          `🚚 *سعر التوصيل:* ${shippingCost} دج\n` +
+                          `💰 *المجموع الكلي:* ${total} دج`;
+
+            window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
+            closeOrderModal();
+        }
+
         function openAdminPortal() {
             let loginBox = document.getElementById('loginBox');
             let adminPanel = document.getElementById('adminPanel');
@@ -454,7 +558,6 @@
             let pass = document.getElementById('password').value;
             if (user === adminUser && pass === adminPass) {
                 isUserAdmin = true;
-                // حفظ حالة تسجيل الدخول في المتصفح لكي لا تُحذف عند تحديث الشاشة
                 localStorage.setItem('is_admin_logged', 'true');
                 
                 alert('تم تسجيل الدخول بنجاح!');
@@ -467,7 +570,6 @@
             }
         }
 
-        // دالة تسجيل الخروج في حال أراد التاجر الخروج يدويًا
         function logoutAdmin() {
             isUserAdmin = false;
             localStorage.removeItem('is_admin_logged');
@@ -528,8 +630,8 @@
                     alert('حدث خطأ أثناء حفظ المنتج في السيرفر: ' + insertError.message);
                 } else {
                     alert('تمت إضافة المنتج وصورته بنجاح وأصبح ظاهراً لجميع الزبائن!');
-                    document.getElementById('newTitle').value = '';
-                    document.getElementById('newPrice').value = '';
+                    document.getElementById('newTitle').value.trim = '';
+                    document.getElementById('newPrice').value.trim = '';
                     imageInput.value = '';
                     renderProducts(); 
                 }
@@ -539,11 +641,6 @@
                 saveBtn.innerText = "حفظ ونشر المنتج للسيرفر";
                 saveBtn.disabled = false;
             }
-        }
-
-        function orderOnWhatsApp(productName, productPrice) {
-            let message = `مرحباً، أريـد طلب هذا المنتج من متجر CK-LUXE:\n*${productName}*\nالسعر: ${productPrice}`;
-            window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
         }
     </script>
 
