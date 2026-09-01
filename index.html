@@ -150,7 +150,7 @@
 
         <!-- لوحة تحكم التاجر -->
         <div id="adminPanel" class="admin-section">
-            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم التاجر: أضف منتجاً جديداً (سحابياً)</h3>
+            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم التاجر: أضف منتجاً جديداً</h3>
             <div class="form-group">
                 <label>اسم المنتج:</label>
                 <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
@@ -159,14 +159,14 @@
                 <label>السعر:</label>
                 <input type="text" id="newPrice" placeholder="مثال: 3200 دج">
             </div>
-            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;">حفظ ونشر المنتج للجميع</button>
+            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;">حفظ ونشر المنتج</button>
         </div>
 
         <h2 style="margin-bottom: 20px; text-align: center;">قائمة المنتجات المتوفرة</h2>
         
         <!-- شبكة المنتجات -->
         <div class="products-grid" id="productsGrid">
-            <p style="text-align: center; grid-column: 1/-1;">جاري تحميل المنتجات السحابية...</p>
+            <p style="text-align: center; grid-column: 1/-1;">جاري تحميل المنتجات...</p>
         </div>
     </div>
 
@@ -175,30 +175,26 @@
         const adminUser = "admin";
         const adminPass = "1234";
 
-        // المعرف الجديد الصحيح والعام
-        const BIN_ID = "6a96ea7eda38895dfe2b8bb9"; 
-        const API_KEY = "$2a$10$J75l.VfvTJT.df3ntnHrj.xq8.NseTPAKkgDYV5/5wkCWJ9haC2d0"; 
+        // المنتجات الافتراضية في حال كانت القاعدة فارغة
+        const defaultProducts = [
+            { title: "قميص رجالي عصري", price: "3200 دج" },
+            { title: "حذاء رياضي أنيق", price: "5500 دج" }
+        ];
 
-        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-
-        // جلب المنتجات
-        async function fetchProductsFromCloud() {
-            try {
-                let response = await fetch(`${API_URL}/latest`, {
-                    headers: { 'X-Master-Key': API_KEY }
-                });
-                let data = await response.json();
-                return data.record.products || [];
-            } catch (error) {
-                console.error("خطأ في جلب البيانات:", error);
-                return [];
+        // جلب المنتجات من ذاكرة المتصفح
+        function getProducts() {
+            let stored = localStorage.getItem('store_products');
+            if (!stored) {
+                localStorage.setItem('store_products', JSON.stringify(defaultProducts));
+                return defaultProducts;
             }
+            return JSON.parse(stored);
         }
 
         // عرض المنتجات
-        async function renderProducts() {
+        function renderProducts() {
             let grid = document.getElementById('productsGrid');
-            let products = await fetchProductsFromCloud();
+            let products = getProducts();
             grid.innerHTML = '';
 
             if (products.length === 0) {
@@ -242,8 +238,8 @@
             }
         }
 
-        // إضافة منتج جديد وتحديث السحابة (PUT)
-        async function addNewProduct() {
+        // إضافة منتج جديد
+        function addNewProduct() {
             let title = document.getElementById('newTitle').value.trim();
             let price = document.getElementById('newPrice').value.trim();
 
@@ -252,34 +248,14 @@
                 return;
             }
 
-            try {
-                // 1. جلب المنتجات الحالية أولاً
-                let currentProducts = await fetchProductsFromCloud();
+            let products = getProducts();
+            products.push({ title: title, price: price });
+            localStorage.setItem('store_products', JSON.stringify(products));
 
-                // 2. إضافة المنتج الجديد للقائمة
-                currentProducts.push({ title: title, price: price });
-
-                // 3. إرسال القائمة المحدثة للسحابة عبر PUT
-                let response = await fetch(API_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': API_KEY
-                    },
-                    body: JSON.stringify({ products: currentProducts })
-                });
-
-                if (response.ok) {
-                    alert('تمت إضافة المنتج بنجاح وأصبح ظاهراً لجميع الزبائن!');
-                    document.getElementById('newTitle').value = '';
-                    document.getElementById('newPrice').value = '';
-                    renderProducts(); // إعادة تحميل العرض
-                } else {
-                    alert('حدث خطأ أثناء الحفظ بالسحابة.');
-                }
-            } catch (e) {
-                alert('فشل الاتصال بالإنترنت.');
-            }
+            alert('تمت إضافة المنتج بنجاح!');
+            document.getElementById('newTitle').value = '';
+            document.getElementById('newPrice').value = '';
+            renderProducts();
         }
 
         function orderOnWhatsApp(productName, productPrice) {
