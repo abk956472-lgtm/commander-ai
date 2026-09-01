@@ -120,9 +120,17 @@
 
         async function fetchProductsFromCloud() {
             try {
-                let { data, error } = await supabaseClient.from('products').select('*').order('id', { ascending: false });
-                return error ? [] : (data || []);
-            } catch (e) { return []; }
+                let { data, error } = await supabaseClient.from('products').select('*');
+                if (error) {
+                    console.error("خطأ Supabase:", error);
+                    return [];
+                }
+                console.log("المنتجات المسترجعة:", data);
+                return data || [];
+            } catch (e) {
+                console.error("خطأ اتصال:", e);
+                return [];
+            }
         }
 
         async function renderProducts() {
@@ -140,13 +148,17 @@
             products.forEach(product => {
                 let card = document.createElement('div');
                 card.className = 'product-card';
-                let imgSrc = product.image_url || 'https://via.placeholder.com/250?text=No+Image';
+                
+                // دعم مرن لأسماء الأعمدة (سواء كانت price أو pricee و image_url أو img)
+                let title = product.title || product.name || 'بدون اسم';
+                let price = product.price || product.pricee || product.sier || 'غير محدد';
+                let imgSrc = product.image_url || product.img || product.image || 'https://via.placeholder.com/250?text=No+Image';
 
                 card.innerHTML = `
                     <img src="${imgSrc}" alt="صورة المنتج">
-                    <div class="product-title">${product.title}</div>
-                    <div class="product-price">${product.pricee}</div>
-                    <button class="buy-btn" onclick="orderOnWhatsApp('${product.title}', '${product.pricee}')">اطلب عبر واتساب</button>
+                    <div class="product-title">${title}</div>
+                    <div class="product-price">${price}</div>
+                    <button class="buy-btn" onclick="orderOnWhatsApp('${title}', '${price}')">اطلب عبر واتساب</button>
                     ${isLoggedIn ? `<button class="delete-btn" onclick="deleteProduct(${product.id})">حذف المنتج النهائي</button>` : ''}
                 `;
                 grid.appendChild(card);
@@ -217,9 +229,10 @@
                     imageUrl = publicUrlData.publicUrl;
                 }
 
+                // إرسال البيانات (ندعم الحقلين price و pricee لضمان عدم حدوث خطأ)
                 let { error: insertError } = await supabaseClient
                     .from('products')
-                    .insert([{ title: title, pricee: price, image_url: imageUrl }]);
+                    .insert([{ title: title, price: price, pricee: price, image_url: imageUrl }]);
 
                 if (insertError) {
                     alert('حدث خطأ أثناء حفظ المنتج في السيرفر: ' + insertError.message);
