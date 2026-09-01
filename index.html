@@ -27,14 +27,14 @@
             font-size: 22px;
             font-weight: bold;
         }
-        .cart-btn {
-            background-color: #e74c3c;
+        .nav-btns button {
+            background-color: #3498db;
             color: white;
             border: none;
             padding: 8px 15px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
         }
         .container {
             max-width: 1200px;
@@ -90,18 +90,85 @@
         .buy-btn:hover {
             background-color: #1ebd56;
         }
+        
+        /* نافذة تسجيل الدخول ولوحة التحكم */
+        .admin-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .action-btn {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo">متجر الملابس العصري</div>
-        <button class="cart-btn" onclick="openCart()">🛒 سلة المشتريات (<span id="cart-count">0</span>)</button>
+        <div class="nav-btns">
+            <button onclick="openAdminPortal()">🔐 دخول التاجر</button>
+        </div>
     </header>
 
     <div class="container">
+
+        <!-- 1. نموذج تسجيل الدخول للتاجر -->
+        <div id="loginBox" class="admin-section">
+            <h3>تسجيل دخول لوحة التحكم</h3>
+            <p style="margin-bottom: 15px; color: #666; font-size: 14px;">الرجاء إدخال بيانات التاجر للوصول إلى إدارة المتجر.</p>
+            <div class="form-group">
+                <label>اسم المستخدم:</label>
+                <input type="text" id="username" placeholder="أدخل اسم المستخدم">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور:</label>
+                <input type="password" id="password" placeholder="أدخل كلمة المرور">
+            </div>
+            <button class="action-btn" onclick="checkLogin()">دخول</button>
+        </div>
+
+        <!-- 2. لوحة تحكم التاجر الفعلية (مخفية حتى يتم تسجيل الدخول بنجاح) -->
+        <div id="adminPanel" class="admin-section">
+            <h3 style="color: #27ae60; margin-bottom: 15px;">مرحباً بك أيها التاجر! (تم تسجيل الدخول بنجاح)</h3>
+            <div class="form-group">
+                <label>اسم المنتج الجديد:</label>
+                <input type="text" id="newTitle" placeholder="مثال: جاكيت رجالي فخم">
+            </div>
+            <div class="form-group">
+                <label>السعر (بالدينار):</label>
+                <input type="text" id="newPrice" placeholder="مثال: 4500 دج">
+            </div>
+            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;">إضافة المنتج للمتجر</button>
+        </div>
+
         <h2 style="margin-bottom: 20px; text-align: center;">أحدث تشكيلة ملابس</h2>
-        <div class="products-grid">
+        
+        <!-- شبكة المنتجات -->
+        <div class="products-grid" id="productsGrid">
             
             <!-- منتج 1 -->
             <div class="product-card">
@@ -119,28 +186,77 @@
                 <button class="buy-btn" onclick="orderOnWhatsApp('سروال جينز كلاسيك', '2800 دج')">اطلب عبر واتساب</button>
             </div>
 
-            <!-- منتج 3 -->
-            <div class="product-card">
-                <div class="product-img">صورة المنتج 3</div>
-                <div class="product-title">جاكيت شتوي فاخر</div>
-                <div class="product-price">6000 دج</div>
-                <button class="buy-btn" onclick="orderOnWhatsApp('جاكيت شتوي فاخر', '6000 دج')">اطلب عبر واتساب</button>
-            </div>
-
         </div>
     </div>
 
     <script>
-        // تم ربط المتجر برقم هاتفك الشخصي بنجاح
+        // بيانات التاجر الافتراضية (يمكنك تغييرها كما تريد)
+        const adminUser = "abdo";
+        const adminPass = "1234";
+
+        // إظهار نافذة تسجيل الدخول عند الضغط على زر دخول التاجر
+        function openAdminPortal() {
+            let loginBox = document.getElementById('loginBox');
+            let adminPanel = document.getElementById('adminPanel');
+            
+            // إذا كانت اللوحة مفتوحة مسبقاً، نقوم بإغلاقها
+            if (loginBox.style.display === 'block' || adminPanel.style.display === 'block') {
+                loginBox.style.display = 'none';
+                adminPanel.style.display = 'none';
+            } else {
+                loginBox.style.display = 'block';
+            }
+        }
+
+        // التحقق من اسم المستخدم وكلمة المرور
+        function checkLogin() {
+            let user = document.getElementById('username').value;
+            let pass = document.getElementById('password').value;
+
+            if (user === adminUser && pass === adminPass) {
+                alert('تم تسجيل الدخول بنجاح!');
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block'; // إظهار لوحة إضافة المنتجات
+            } else {
+                alert('خطأ في اسم المستخدم أو كلمة المرور!');
+            }
+        }
+
+        // دالة إضافة منتج جديد
+        function addNewProduct() {
+            let title = document.getElementById('newTitle').value;
+            let price = document.getElementById('newPrice').value;
+
+            if (title === '' || price === '') {
+                alert('الرجاء إدخال اسم المنتج والسعر!');
+                return;
+            }
+
+            let grid = document.getElementById('productsGrid');
+
+            let newCard = document.createElement('div');
+            newCard.className = 'product-card';
+            newCard.innerHTML = `
+                <div class="product-img">منتج جديد</div>
+                <div class="product-title">${title}</div>
+                <div class="product-price">${price}</div>
+                <button class="buy-btn" onclick="orderOnWhatsApp('${title}', '${price}')">اطلب عبر واتساب</button>
+            `;
+
+            grid.prepend(newCard);
+
+            document.getElementById('newTitle').value = '';
+            document.getElementById('newPrice').value = '';
+            
+            alert('تمت إضافة المنتج بنجاح للمتجر!');
+        }
+
+        // توجيه الطلب إلى رقم واتساب الخاص بك
         function orderOnWhatsApp(productName, productPrice) {
             let phoneNumber = "213562957309"; 
             let message = `مرحباً، أريـد طلب هذا المنتج:\n*${productName}*\nالسعر: ${productPrice}`;
             let encodedMessage = encodeURIComponent(message);
             window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
-        }
-
-        function openCart() {
-            alert("ميزة سلة المشتريات قيد التطوير حالياً، استخدم زر 'اطلب عبر واتساب' مباشرة!");
         }
     </script>
 
