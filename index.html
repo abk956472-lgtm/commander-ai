@@ -14,7 +14,6 @@
             font-family: 'Tahoma', sans-serif;
         }
         body {
-            /* الخلفية الافتراضية أو التي يتم اختيارها */
             background: linear-gradient(135deg, #f4f7f6 0%, #e2e8f0 100%);
             background-size: cover;
             background-position: center;
@@ -64,7 +63,6 @@
         }
         .products-grid {
             display: grid;
-            /* عرض 5 أعمدة في الشاشات الكبيرة */
             grid-template-columns: repeat(5, 1fr);
             gap: 15px;
         }
@@ -229,10 +227,6 @@
     <header>
         <div class="logo">CK-LUXE</div>
         <div class="nav-btns">
-            <!-- زر تغيير الخلفية المخفي خلف صلاحية التاجر أو متاح للجميع (متاح هنا لتسهيل التحكم) -->
-            <button onclick="document.getElementById('bgImageInput').click()" style="background-color: #8e44ad;">🖼️ تغيير خلفية الموقع</button>
-            <input type="file" id="bgImageInput" accept="image/*" style="display: none;" onchange="changeBackground(event)">
-            
             <button onclick="openAdminPortal()">🔐 دخول لوحة التاجر</button>
         </div>
     </header>
@@ -252,8 +246,20 @@
             <button class="action-btn" onclick="checkLogin()">دخول</button>
         </div>
 
+        <!-- لوحة التحكم (تظهر فقط للتاجر) -->
         <div id="adminPanel" class="admin-section">
-            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم CK-LUXE: أضف منتجاً جديداً مع صورة</h3>
+            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم CK-LUXE</h3>
+            
+            <!-- زر تغيير خلفية الموقع (مخفي داخل لوحة التاجر ولا يظهر إلا له) -->
+            <div class="form-group" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px dashed #8e44ad;">
+                <label style="color: #8e44ad;">🖼️ التحكم بخلفية الموقع (تظهر لجميع الزوار):</label>
+                <button class="action-btn" onclick="document.getElementById('bgImageInput').click()" style="background-color: #8e44ad; margin-top: 5px;">اختر صورة الخلفية الجديدة</button>
+                <input type="file" id="bgImageInput" accept="image/*" style="display: none;" onchange="uploadAndChangeBackground(event)">
+            </div>
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
+
+            <h4 style="color: #27ae60; margin-bottom: 15px;">أضف منتجاً جديداً مع صورة</h4>
             <div class="form-group">
                 <label>اسم المنتج:</label>
                 <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
@@ -287,34 +293,58 @@
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const clientWhatsAppNumber = "213562957309"; 
+        const clientWhatsAppNumber = "213775742738"; 
         const adminUser = "admin";
         const adminPass = "1234";
         
         let isUserAdmin = false;
 
-        // تطبيق الخلفية المحفوظة مسبقاً فور فتح الصفحة
         window.addEventListener('DOMContentLoaded', () => {
-            let savedBg = localStorage.getItem('site_background');
-            if (savedBg) {
-                document.body.style.backgroundImage = `url('${savedBg}')`;
-            }
+            fetchSiteBackground();
             renderProducts();
         });
 
-        // دالة تغيير خلفية الموقع وحفظها
-        function changeBackground(event) {
+        // جلب الخلفية المعتمدة من السيرفر لكي تظهر للجميع
+        async function fetchSiteBackground() {
+            try {
+                let { data, error } = await supabaseClient.from('settings').select('*').eq('key', 'background').single();
+                if (data && data.value) {
+                    document.body.style.backgroundImage = `url('${data.value}')`;
+                }
+            } catch (e) {
+                console.log("لم يتم تعيين خلفية مخصصة بعد.");
+            }
+        }
+
+        // رفع خلفية جديدة للتاجر وحفظها في السيرفر ليراها الجميع
+        async function uploadAndChangeBackground(event) {
             let file = event.target.files[0];
             if (file) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    let imageUrl = e.target.result;
-                    document.body.style.backgroundImage = `url('${imageUrl}')`;
-                    // حفظ الصورة في الذاكرة المحلية للجهاز
-                    localStorage.setItem('site_background', imageUrl);
-                    alert('تم تغيير خلفية الموقع بنجاح!');
+                let fileExt = file.name.split('.').pop();
+                let fileName = `bg_${Date.now()}.${fileExt}`;
+                
+                alert('جاري رفع وتحديث الخلفية لجميع الزبائن...');
+
+                let { data: uploadData, error: uploadError } = await supabaseClient.storage
+                    .from('product-images')
+                    .upload(fileName, file);
+
+                if (uploadError) {
+                    alert('خطأ أثناء رفع الصورة: ' + uploadError.message);
+                    return;
                 }
-                reader.readAsDataURL(file);
+
+                let { data: publicUrlData } = supabaseClient.storage
+                    .from('product-images')
+                    .getPublicUrl(fileName);
+
+                let imageUrl = publicUrlData.publicUrl;
+
+                // حفظ رابط الخلفية في جدول الإعدادات بالسيرفر (أو تحديثه إن كان موجوداً)
+                await supabaseClient.from('settings').upsert({ key: 'background', value: imageUrl });
+
+                document.body.style.backgroundImage = `url('${imageUrl}')`;
+                alert('تم تغيير وتطبيق الخلفية بنجاح لتظهر لجميع الزوار!');
             }
         }
 
@@ -402,7 +432,7 @@
             let pass = document.getElementById('password').value;
             if (user === adminUser && pass === adminPass) {
                 isUserAdmin = true;
-                alert('تم تسجيل الدخول بنجاح! أصبحت أزرار الحذف ظاهرة.');
+                alert('تم تسجيل الدخول بنجاح! أصبحت لوحة التحكم وزر تغيير الخلفية ظاهرين لك.');
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
                 renderProducts();
