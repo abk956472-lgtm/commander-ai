@@ -54,11 +54,10 @@
         }
         .products-grid {
             display: grid;
-            /* تعديل العرض ليكون 5 أعمدة في الشاشات الكبيرة */
+            /* عرض 5 أعمدة في الشاشات الكبيرة */
             grid-template-columns: repeat(5, 1fr);
             gap: 15px;
         }
-        /* ضبط المقاسات للشاشات المتوسطة والصغيرة لتظل منظمة */
         @media (max-width: 1024px) {
             .products-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -89,7 +88,7 @@
             background-color: #ddd;
             border-radius: 8px;
             margin-bottom: 8px;
-            cursor: pointer; /* مؤشر النقر لتكبير الصورة */
+            cursor: pointer;
             transition: opacity 0.2s;
         }
         .product-img:hover {
@@ -118,9 +117,26 @@
             font-size: 14px;
             font-weight: bold;
             transition: background 0.3s;
+            margin-bottom: 5px;
         }
         .buy-btn:hover {
             background-color: #1ebd56;
+        }
+        /* زر الحذف يظهر فقط للتاجر المسجل دخوله */
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
         }
         .admin-section {
             background: white;
@@ -264,6 +280,8 @@
         const clientWhatsAppNumber = "213562957309"; 
         const adminUser = "admin";
         const adminPass = "1234";
+        
+        let isUserAdmin = false; // متغير للتحقق مما إذا كان التاجر مسجلاً للدخول
 
         async function fetchProductsFromCloud() {
             try {
@@ -295,14 +313,31 @@
                 
                 let imgSrc = product.image_url ? product.image_url : 'https://via.placeholder.com/250?text=No+Image';
 
+                // إذا كان مسجلاً كتاجر، نضيف زر الحذف تحت زر الواتساب
+                let deleteButtonHtml = isUserAdmin ? `<button class="delete-btn" onclick="deleteProduct(${product.id})">حذف المنتج</button>` : '';
+
                 card.innerHTML = `
                     <img src="${imgSrc}" class="product-img" alt="صورة المنتج" onclick="openModal('${imgSrc}')">
                     <div class="product-title">${product.title}</div>
                     <div class="product-price">${product.pricee}</div>
                     <button class="buy-btn" onclick="orderOnWhatsApp('${product.title}', '${product.pricee}')">اطلب عبر واتساب</button>
+                    ${deleteButtonHtml}
                 `;
                 grid.appendChild(card);
             });
+        }
+
+        // دالة حذف المنتج من قاعدة البيانات
+        async function deleteProduct(productId) {
+            if (confirm('هل أنت متأكد من رغبتك في حذف هذا المنتج؟')) {
+                let { error } = await supabaseClient.from('products').delete().eq('id', productId);
+                if (error) {
+                    alert('خطأ أثناء الحذف: ' + error.message);
+                } else {
+                    alert('تم حذف المنتج بنجاح!');
+                    renderProducts();
+                }
+            }
         }
 
         // دالة فتح نافذة تكبير الصورة
@@ -321,11 +356,13 @@
         function openAdminPortal() {
             let loginBox = document.getElementById('loginBox');
             let adminPanel = document.getElementById('adminPanel');
-            if (loginBox.style.display === 'block' || adminPanel.style.display === 'block') {
+            if (isUserAdmin) {
+                // إذا كان مسجل دخول مسبقاً، نغلق أو نفتح لوحة التحكم مباشرة
+                adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
                 loginBox.style.display = 'none';
-                adminPanel.style.display = 'none';
             } else {
-                loginBox.style.display = 'block';
+                loginBox.style.display = loginBox.style.display === 'block' ? 'none' : 'block';
+                adminPanel.style.display = 'none';
             }
         }
 
@@ -333,9 +370,11 @@
             let user = document.getElementById('username').value;
             let pass = document.getElementById('password').value;
             if (user === adminUser && pass === adminPass) {
-                alert('تم تسجيل الدخول بنجاح!');
+                isUserAdmin = true;
+                alert('تم تسجيل الدخول بنجاح! أصبحت أزرار الحذف ظاهرة.');
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
+                renderProducts(); // إعادة رسم المنتجات لإظهار أزرار الحذف
             } else {
                 alert('خطأ في اسم المستخدم أو كلمة المرور!');
             }
