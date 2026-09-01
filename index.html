@@ -122,7 +122,6 @@
         .buy-btn:hover {
             background-color: #1ebd56;
         }
-        /* زر الحذف يظهر فقط للتاجر المسجل دخوله */
         .delete-btn {
             background-color: #e74c3c;
             color: white;
@@ -183,7 +182,6 @@
             color: #1a1a1a;
         }
 
-        /* نافذة تكبير الصورة (Lightbox) */
         #imageModal {
             display: none;
             position: fixed;
@@ -225,7 +223,6 @@
 
     <div class="container">
 
-        <!-- نموذج تسجيل الدخول للتاجر -->
         <div id="loginBox" class="admin-section">
             <h3>تسجيل دخول لوحة التحكم</h3>
             <div class="form-group" style="margin-top: 10px;">
@@ -239,7 +236,6 @@
             <button class="action-btn" onclick="checkLogin()">دخول</button>
         </div>
 
-        <!-- لوحة تحكم التاجر -->
         <div id="adminPanel" class="admin-section">
             <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم CK-LUXE: أضف منتجاً جديداً مع صورة</h3>
             <div class="form-group">
@@ -259,13 +255,11 @@
 
         <h2 style="margin-bottom: 20px; text-align: center;">تشكيلة المنتجات المميزة</h2>
         
-        <!-- شبكة المنتجات -->
         <div class="products-grid" id="productsGrid">
             <p style="text-align: center; grid-column: 1/-1;">جاري جلب المنتجات من سيرفرك الخاص...</p>
         </div>
     </div>
 
-    <!-- نافذة عرض الصورة مكبرة -->
     <div id="imageModal" onclick="closeModal()">
         <span onclick="closeModal()">&times;</span>
         <img id="modalImg">
@@ -281,7 +275,7 @@
         const adminUser = "admin";
         const adminPass = "1234";
         
-        let isUserAdmin = false; // متغير للتحقق مما إذا كان التاجر مسجلاً للدخول
+        let isUserAdmin = false;
 
         async function fetchProductsFromCloud() {
             try {
@@ -312,25 +306,25 @@
                 card.className = 'product-card';
                 
                 let imgSrc = product.image_url ? product.image_url : 'https://via.placeholder.com/250?text=No+Image';
+                let productTitle = product.title || '';
 
-                // إذا كان مسجلاً كتاجر، نضيف زر الحذف تحت زر الواتساب
-                let deleteButtonHtml = isUserAdmin ? `<button class="delete-btn" onclick="deleteProduct(${product.id})">حذف المنتج</button>` : '';
+                let deleteButtonHtml = isUserAdmin ? `<button class="delete-btn" onclick="deleteProduct('${productTitle.replace(/'/g, "\\'")}')">حذف المنتج</button>` : '';
 
                 card.innerHTML = `
                     <img src="${imgSrc}" class="product-img" alt="صورة المنتج" onclick="openModal('${imgSrc}')">
-                    <div class="product-title">${product.title}</div>
+                    <div class="product-title">${productTitle}</div>
                     <div class="product-price">${product.pricee}</div>
-                    <button class="buy-btn" onclick="orderOnWhatsApp('${product.title}', '${product.pricee}')">اطلب عبر واتساب</button>
+                    <button class="buy-btn" onclick="orderOnWhatsApp('${productTitle}', '${product.pricee}')">اطلب عبر واتساب</button>
                     ${deleteButtonHtml}
                 `;
                 grid.appendChild(card);
             });
         }
 
-        // دالة حذف المنتج من قاعدة البيانات
-        async function deleteProduct(productId) {
-            if (confirm('هل أنت متأكد من رغبتك في حذف هذا المنتج؟')) {
-                let { error } = await supabaseClient.from('products').delete().eq('id', productId);
+        // تم تعديل دالة الحذف لتعتمد على اسم المنتج (title) وليس الـ id
+        async function deleteProduct(productTitle) {
+            if (confirm(`هل أنت متأكد من رغبتك في حذف المنتج: ${productTitle}؟`)) {
+                let { error } = await supabaseClient.from('products').delete().eq('title', productTitle);
                 if (error) {
                     alert('خطأ أثناء الحذف: ' + error.message);
                 } else {
@@ -340,7 +334,6 @@
             }
         }
 
-        // دالة فتح نافذة تكبير الصورة
         function openModal(imgSrc) {
             let modal = document.getElementById('imageModal');
             let modalImg = document.getElementById('modalImg');
@@ -348,7 +341,6 @@
             modalImg.src = imgSrc;
         }
 
-        // دالة إغلاق نافذة تكبير الصورة
         function closeModal() {
             document.getElementById('imageModal').style.display = 'none';
         }
@@ -357,7 +349,6 @@
             let loginBox = document.getElementById('loginBox');
             let adminPanel = document.getElementById('adminPanel');
             if (isUserAdmin) {
-                // إذا كان مسجل دخول مسبقاً، نغلق أو نفتح لوحة التحكم مباشرة
                 adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
                 loginBox.style.display = 'none';
             } else {
@@ -374,7 +365,7 @@
                 alert('تم تسجيل الدخول بنجاح! أصبحت أزرار الحذف ظاهرة.');
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
-                renderProducts(); // إعادة رسم المنتجات لإظهار أزرار الحذف
+                renderProducts();
             } else {
                 alert('خطأ في اسم المستخدم أو كلمة المرور!');
             }
