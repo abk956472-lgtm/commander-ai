@@ -187,6 +187,22 @@
         .action-btn:hover {
             background-color: #333;
         }
+        .logout-btn {
+            background-color: #c0392b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 10px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        .logout-btn:hover {
+            background-color: #962d22;
+        }
         h2 {
             color: #fff;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
@@ -227,7 +243,7 @@
     <header>
         <div class="logo">CK-LUXE</div>
         <div class="nav-btns">
-            <button onclick="openAdminPortal()">🔐 دخول لوحة التاجر</button>
+            <button onclick="openAdminPortal()" id="portalBtn">🔐 دخول لوحة التاجر</button>
         </div>
     </header>
 
@@ -250,7 +266,6 @@
         <div id="adminPanel" class="admin-section">
             <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم CK-LUXE</h3>
             
-            <!-- زر تغيير خلفية الموقع (مخفي داخل لوحة التاجر ولا يظهر إلا له) -->
             <div class="form-group" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px dashed #8e44ad;">
                 <label style="color: #8e44ad;">🖼️ التحكم بخلفية الموقع (تظهر لجميع الزوار):</label>
                 <button class="action-btn" onclick="document.getElementById('bgImageInput').click()" style="background-color: #8e44ad; margin-top: 5px;">اختر صورة الخلفية الجديدة</button>
@@ -273,6 +288,9 @@
                 <input type="file" id="productImage" accept="image/*">
             </div>
             <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;" id="saveBtn">حفظ ونشر المنتج للسيرفر</button>
+            
+            <!-- زر تسجيل الخروج للتاجر إن رغب في الخروج -->
+            <button class="logout-btn" onclick="logoutAdmin()">تسجيل الخروج</button>
         </div>
 
         <h2 style="margin-bottom: 20px; text-align: center;">تشكيلة المنتجات المميزة</h2>
@@ -300,11 +318,17 @@
         let isUserAdmin = false;
 
         window.addEventListener('DOMContentLoaded', () => {
+            // التحقق مما إذا كان التاجر مسجلاً مسبقاً من الذاكرة المحلية
+            let savedAdminState = localStorage.getItem('is_admin_logged');
+            if (savedAdminState === 'true') {
+                isUserAdmin = true;
+                document.getElementById('portalBtn').innerText = "⚙️ لوحة التحكم";
+            }
+
             fetchSiteBackground();
             renderProducts();
         });
 
-        // جلب الخلفية المعتمدة من السيرفر لكي تظهر للجميع
         async function fetchSiteBackground() {
             try {
                 let { data, error } = await supabaseClient.from('settings').select('*').eq('key', 'background').single();
@@ -316,7 +340,6 @@
             }
         }
 
-        // رفع خلفية جديدة للتاجر وحفظها في السيرفر ليراها الجميع
         async function uploadAndChangeBackground(event) {
             let file = event.target.files[0];
             if (file) {
@@ -340,7 +363,6 @@
 
                 let imageUrl = publicUrlData.publicUrl;
 
-                // حفظ رابط الخلفية في جدول الإعدادات بالسيرفر (أو تحديثه إن كان موجوداً)
                 await supabaseClient.from('settings').upsert({ key: 'background', value: imageUrl });
 
                 document.body.style.backgroundImage = `url('${imageUrl}')`;
@@ -432,13 +454,25 @@
             let pass = document.getElementById('password').value;
             if (user === adminUser && pass === adminPass) {
                 isUserAdmin = true;
-                alert('تم تسجيل الدخول بنجاح! أصبحت لوحة التحكم وزر تغيير الخلفية ظاهرين لك.');
+                // حفظ حالة تسجيل الدخول في المتصفح لكي لا تُحذف عند تحديث الشاشة
+                localStorage.setItem('is_admin_logged', 'true');
+                
+                alert('تم تسجيل الدخول بنجاح!');
+                document.getElementById('portalBtn').innerText = "⚙️ لوحة التحكم";
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
                 renderProducts();
             } else {
                 alert('خطأ في اسم المستخدم أو كلمة المرور!');
             }
+        }
+
+        // دالة تسجيل الخروج في حال أراد التاجر الخروج يدويًا
+        function logoutAdmin() {
+            isUserAdmin = false;
+            localStorage.removeItem('is_admin_logged');
+            alert('تم تسجيل الخروج بنجاح.');
+            location.reload();
         }
 
         async function addNewProduct() {
