@@ -3,64 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CK-LUXE | متجر الفخامة</title>
+    <title>CK-LUXE</title>
+    <!-- استدعاء مكتبة Supabase الرسمية -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --bg-gradient-1: #f4f7f6;
-            --bg-gradient-2: #e2e8f0;
-            --text-color: #333;
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --header-bg: #1a1a1a;
-            --accent-color: #f39c12;
-            --danger-color: #e74c3c;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tahoma', sans-serif;
         }
-        body.dark-theme {
-            --bg-gradient-1: #121212;
-            --bg-gradient-2: #1e1e1e;
-            --text-color: #e0e0e0;
-            --card-bg: #222;
-            --header-bg: #0a0a0a;
-            --accent-color: #d4af37;
+        body {
+            background: linear-gradient(135deg, #f4f7f6 0%, #e2e8f0 100%);
+            color: #333;
+            min-height: 100vh;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tahoma', sans-serif; }
-        body { background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 100%); color: var(--text-color); min-height: 100vh; }
-        .top-bar { background: #111; color: #d4af37; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; border-bottom: 1px solid #333; }
-        header { background-color: var(--header-bg); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 24px; font-weight: bold; color: var(--accent-color); }
-        .nav-btns { display: flex; gap: 10px; }
-        .nav-btns button { background-color: var(--accent-color); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
-        .products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .product-card { background: var(--card-bg); border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center; padding: 15px; }
-        .product-card img { width: 100%; height: 200px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; background-color: #ddd; }
-        .product-title { font-size: 18px; margin-bottom: 5px; font-weight: bold; }
-        .product-price { color: #27ae60; font-weight: bold; font-size: 16px; margin-bottom: 10px; }
-        .buy-btn { background-color: #25d366; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 5px; }
-        .delete-btn { background-color: var(--danger-color); color: white; border: none; padding: 8px; width: 100%; border-radius: 5px; cursor: pointer; font-size: 14px; margin-top: 8px; }
-        .admin-section { background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 30px; display: none; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background: transparent; color: inherit; }
-        .action-btn { background-color: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
+        header {
+            background-color: #1a1a1a;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #f39c12;
+        }
+        .nav-btns button {
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .nav-btns button:hover {
+            background-color: #d68910;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .products-grid {
+            display: grid;
+            /* تعديل العرض ليكون 5 أعمدة في الشاشات الكبيرة */
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+        /* ضبط المقاسات للشاشات المتوسطة والصغيرة لتظل منظمة */
+        @media (max-width: 1024px) {
+            .products-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .product-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            text-align: center;
+            padding: 10px;
+            transition: transform 0.3s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        .product-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            background-color: #ddd;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer; /* مؤشر النقر لتكبير الصورة */
+            transition: opacity 0.2s;
+        }
+        .product-img:hover {
+            opacity: 0.9;
+        }
+        .product-title {
+            font-size: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .product-price {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .buy-btn {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 8px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .buy-btn:hover {
+            background-color: #1ebd56;
+        }
+        .admin-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+        }
+        .form-group input:focus {
+            border-color: #f39c12;
+        }
+        .action-btn {
+            background-color: #1a1a1a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #333;
+        }
+        h2 {
+            color: #1a1a1a;
+        }
+
+        /* نافذة تكبير الصورة (Lightbox) */
+        #imageModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+        }
+        #imageModal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+        #imageModal span {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <span>📞 الهاتف: 0673117149</span>
-        <span>Developer & Store Creator: Abdo Store</span>
-    </div>
-
     <header>
         <div class="logo">CK-LUXE</div>
         <div class="nav-btns">
-            <button onclick="toggleTheme()" style="background-color: #555;">🌓 الخلفية</button>
-            <button onclick="openAdminPortal()">🔐 لوحة التاجر</button>
+            <button onclick="openAdminPortal()">🔐 دخول لوحة التاجر</button>
         </div>
     </header>
 
     <div class="container">
+
+        <!-- نموذج تسجيل الدخول للتاجر -->
         <div id="loginBox" class="admin-section">
             <h3>تسجيل دخول لوحة التحكم</h3>
             <div class="form-group" style="margin-top: 10px;">
@@ -71,11 +220,12 @@
                 <label>كلمة المرور:</label>
                 <input type="password" id="password" placeholder="كلمة المرور">
             </div>
-            <button class="action-btn" onclick="checkLogin()" style="background-color: #1a1a1a;">دخول</button>
+            <button class="action-btn" onclick="checkLogin()">دخول</button>
         </div>
 
+        <!-- لوحة تحكم التاجر -->
         <div id="adminPanel" class="admin-section">
-            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم CK-LUXE: أضف منتجاً جديداً</h3>
+            <h3 style="color: #27ae60; margin-bottom: 15px;">لوحة تحكم CK-LUXE: أضف منتجاً جديداً مع صورة</h3>
             <div class="form-group">
                 <label>اسم المنتج:</label>
                 <input type="text" id="newTitle" placeholder="مثال: قميص رجالي فاخر">
@@ -86,44 +236,45 @@
             </div>
             <div class="form-group">
                 <label>صورة المنتج:</label>
-                <input type="file" id="productImages" accept="image/*">
+                <input type="file" id="productImage" accept="image/*">
             </div>
-            <button class="action-btn" onclick="addNewProduct()" id="saveBtn">حفظ ونشر المنتج للسيرفر</button>
+            <button class="action-btn" onclick="addNewProduct()" style="background-color: #27ae60;" id="saveBtn">حفظ ونشر المنتج للسيرفر</button>
         </div>
 
         <h2 style="margin-bottom: 20px; text-align: center;">تشكيلة المنتجات المميزة</h2>
+        
+        <!-- شبكة المنتجات -->
         <div class="products-grid" id="productsGrid">
             <p style="text-align: center; grid-column: 1/-1;">جاري جلب المنتجات من سيرفرك الخاص...</p>
         </div>
     </div>
 
+    <!-- نافذة عرض الصورة مكبرة -->
+    <div id="imageModal" onclick="closeModal()">
+        <span onclick="closeModal()">&times;</span>
+        <img id="modalImg">
+    </div>
+
     <script>
         const SUPABASE_URL = "https://lvthnzfubbrhyfnwqaxs.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_dxFosZXqkQfgc0qexLu0jw_FJ8xLY_G";
+
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const clientWhatsAppNumber = "213673117149";
+
+        const clientWhatsAppNumber = "213562957309"; 
         const adminUser = "admin";
         const adminPass = "1234";
-
-        function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
-            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
-        }
-        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme');
-
-        window.onload = function() {
-            if(localStorage.getItem('isAdminLoggedIn') === 'true') {
-                document.getElementById('adminPanel').style.display = 'block';
-            }
-            renderProducts();
-        }
 
         async function fetchProductsFromCloud() {
             try {
                 let { data, error } = await supabaseClient.from('products').select('*');
-                if (error) return [];
+                if (error) {
+                    console.error("خطأ في جلب البيانات:", error);
+                    return [];
+                }
                 return data || [];
-            } catch (e) {
+            } catch (error) {
+                console.error("خطأ الاتصال:", error);
                 return [];
             }
         }
@@ -138,46 +289,53 @@
                 return;
             }
 
-            let isLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
-
             products.forEach(product => {
                 let card = document.createElement('div');
                 card.className = 'product-card';
                 
-                let title = product.title || 'بدون اسم';
-                let price = product.price || 'غير محدد';
-                let imgSrc = product.image_url || 'https://via.placeholder.com/250?text=No+Image';
+                let imgSrc = product.image_url ? product.image_url : 'https://via.placeholder.com/250?text=No+Image';
 
                 card.innerHTML = `
-                    <img src="${imgSrc}" alt="صورة المنتج">
-                    <div class="product-title">${title}</div>
-                    <div class="product-price">${price}</div>
-                    <button class="buy-btn" onclick="orderOnWhatsApp('${title}', '${price}')">اطلب عبر واتساب</button>
-                    ${isLoggedIn ? `<button class="delete-btn" onclick="deleteProduct(${product.id})">حذف المنتج النهائي</button>` : ''}
+                    <img src="${imgSrc}" class="product-img" alt="صورة المنتج" onclick="openModal('${imgSrc}')">
+                    <div class="product-title">${product.title}</div>
+                    <div class="product-price">${product.pricee}</div>
+                    <button class="buy-btn" onclick="orderOnWhatsApp('${product.title}', '${product.pricee}')">اطلب عبر واتساب</button>
                 `;
                 grid.appendChild(card);
             });
         }
 
+        // دالة فتح نافذة تكبير الصورة
+        function openModal(imgSrc) {
+            let modal = document.getElementById('imageModal');
+            let modalImg = document.getElementById('modalImg');
+            modal.style.display = 'flex';
+            modalImg.src = imgSrc;
+        }
+
+        // دالة إغلاق نافذة تكبير الصورة
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
         function openAdminPortal() {
             let loginBox = document.getElementById('loginBox');
             let adminPanel = document.getElementById('adminPanel');
-            if(localStorage.getItem('isAdminLoggedIn') === 'true') {
-                adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
-                return;
+            if (loginBox.style.display === 'block' || adminPanel.style.display === 'block') {
+                loginBox.style.display = 'none';
+                adminPanel.style.display = 'none';
+            } else {
+                loginBox.style.display = 'block';
             }
-            loginBox.style.display = loginBox.style.display === 'block' ? 'none' : 'block';
         }
 
         function checkLogin() {
             let user = document.getElementById('username').value;
             let pass = document.getElementById('password').value;
             if (user === adminUser && pass === adminPass) {
-                localStorage.setItem('isAdminLoggedIn', 'true');
                 alert('تم تسجيل الدخول بنجاح!');
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
-                renderProducts();
             } else {
                 alert('خطأ في اسم المستخدم أو كلمة المرور!');
             }
@@ -186,28 +344,29 @@
         async function addNewProduct() {
             let title = document.getElementById('newTitle').value.trim();
             let price = document.getElementById('newPrice').value.trim();
-            let imageInput = document.getElementById('productImages');
+            let imageInput = document.getElementById('productImage');
             let saveBtn = document.getElementById('saveBtn');
 
             if (title === '' || price === '') {
-                alert('الرجاء إدخال اسم المنتج والسعر!');
+                alert('الرجاء تعبئة اسم المنتج والسعر على الأقل!');
                 return;
             }
 
             saveBtn.innerText = "جاري رفع الصورة وحفظ المنتج...";
             saveBtn.disabled = true;
 
-            let imageUrl = '';
+            let imageUrl = "";
 
             try {
                 if (imageInput.files.length > 0) {
                     let file = imageInput.files[0];
                     let fileExt = file.name.split('.').pop();
-                    let fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+                    let fileName = `${Date.now()}.${fileExt}`;
+                    let filePath = `${fileName}`;
 
-                    let { error: uploadError } = await supabaseClient.storage
+                    let { data: uploadData, error: uploadError } = await supabaseClient.storage
                         .from('product-images')
-                        .upload(fileName, file);
+                        .upload(filePath, file);
 
                     if (uploadError) {
                         alert('خطأ أثناء رفع الصورة: ' + uploadError.message);
@@ -218,7 +377,7 @@
 
                     let { data: publicUrlData } = supabaseClient.storage
                         .from('product-images')
-                        .getPublicUrl(fileName);
+                        .getPublicUrl(filePath);
 
                     imageUrl = publicUrlData.publicUrl;
                 }
@@ -227,18 +386,18 @@
                     .from('products')
                     .insert([{ 
                         title: title, 
-                        price: price, 
+                        pricee: price, 
                         image_url: imageUrl 
                     }]);
 
                 if (insertError) {
                     alert('حدث خطأ أثناء حفظ المنتج في السيرفر: ' + insertError.message);
                 } else {
-                    alert('تمت إضافة المنتج بنجاح وأصبح ظاهراً لجميع الزبائن!');
+                    alert('تمت إضافة المنتج وصورته بنجاح وأصبح ظاهراً لجميع الزبائن!');
                     document.getElementById('newTitle').value = '';
                     document.getElementById('newPrice').value = '';
                     imageInput.value = '';
-                    renderProducts();
+                    renderProducts(); 
                 }
             } catch (e) {
                 alert('فشل الاتصال بالسيرفر.');
@@ -248,23 +407,13 @@
             }
         }
 
-        async>
-        async function deleteProduct(productId) {
-            if (confirm('هل أنت متأكد من رغبتك في حذف هذا المنتج نهائياً؟')) {
-                let { error } = await supabaseClient.from('products').delete().eq('id', productId);
-                if (error) {
-                    alert('خطأ أثناء الحذف: ' + error.message);
-                } else {
-                    alert('تم حذف المنتج بنجاح!');
-                    renderProducts();
-                }
-            }
-        }
-
         function orderOnWhatsApp(productName, productPrice) {
             let message = `مرحباً، أريـد طلب هذا المنتج من متجر CK-LUXE:\n*${productName}*\nالسعر: ${productPrice}`;
             window.open(`https://wa.me/${clientWhatsAppNumber}?text=${encodeURIComponent(message)}`, '_blank');
         }
+
+        window.onload = renderProducts;
     </script>
+
 </body>
 </html>
